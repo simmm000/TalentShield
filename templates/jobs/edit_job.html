@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Job - Talent Shield</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;
+            font-family: Arial, sans-serif;
+        }
+        .form-group textarea { min-height: 100px; }
+        .btn { display: inline-block; padding: 12px 30px; background: #6C3CE1; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background: #5A2BC4; }
+        .btn-secondary { background: #6B7280; }
+        .btn-secondary:hover { background: #4B5563; }
+        .back { color: #6C3CE1; text-decoration: none; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .alert { padding: 12px 16px; border-radius: 5px; margin-bottom: 15px; }
+        .alert-success { background: #D1FAE5; color: #065F46; }
+        .alert-error { background: #FEE2E2; color: #DC2626; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/my-jobs/" class="back">← Back to My Jobs</a>
+        <h1>✏️ Edit Job</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Job Title *</label>
+                <input type="text" name="title" value="{{ job.title }}" required>
+            </div>
+            <div class="form-group">
+                <label>Company Name *</label>
+                <input type="text" name="company" value="{{ job.company }}" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Job Type *</label>
+                    <select name="job_type" required>
+                        {% for key, value in job_types %}
+                            <option value="{{ key }}" {% if job.job_type == key %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Experience Level *</label>
+                    <select name="experience_level" required>
+                        {% for key, value in experience_levels %}
+                            <option value="{{ key }}" {% if job.experience_level == key %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Location *</label>
+                    <input type="text" name="location" value="{{ job.location }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Remote</label>
+                    <input type="checkbox" name="is_remote" {% if job.is_remote %}checked{% endif %} style="width:auto;"> 
+                    <label style="display:inline; font-weight:normal;">Remote position</label>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Min Salary</label>
+                    <input type="number" name="salary_min" value="{{ job.salary_min }}">
+                </div>
+                <div class="form-group">
+                    <label>Max Salary</label>
+                    <input type="number" name="salary_max" value="{{ job.salary_max }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Required Skills</label>
+                <input type="text" name="skills" value="{{ job.skills_required|join:', ' }}" placeholder="Python, Linux, Wireshark">
+                <small style="color:#6B7280;">Separate skills with commas</small>
+            </div>
+            <div class="form-group">
+                <label>Job Description *</label>
+                <textarea name="description" required>{{ job.description }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Requirements *</label>
+                <textarea name="requirements" required>{{ job.requirements }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Responsibilities</label>
+                <textarea name="responsibilities">{{ job.responsibilities }}</textarea>
+            </div>
+            <button type="submit" class="btn">💾 Update Job</button>
+            <a href="/my-jobs/" class="btn btn-secondary" style="text-decoration:none; margin-left:10px;">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

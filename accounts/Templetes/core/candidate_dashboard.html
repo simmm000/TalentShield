@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Dashboard - Talent Shield</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <span class="logo">🛡️</span>
+                <span class="brand-name">Talent Shield</span>
+            </div>
+            <div class="nav-links">
+                <a href="#">Dashboard</a>
+                <a href="#">Challenges</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Welcome, {{ user.username }}! 👋</h1>
+                <p>Your gateway to secure cybersecurity recruitment</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>📋 Profile Status</h3>
+                    <div class="profile-status">
+                        <div class="status-item">
+                            <span class="status-label">CV Uploaded</span>
+                            <span class="status-badge">❌ Not Uploaded</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Skills Extracted</span>
+                            <span class="status-badge">⏳ Pending</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Fraud Score</span>
+                            <span class="status-badge">⏳ Pending</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="alert('Upload CV feature coming soon!')">Upload CV</button>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Your Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-mini">
+                            <span class="stat-number">0</span>
+                            <span class="stat-label">Challenges</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span class="stat-number">0</span>
+                            <span class="stat-label">Points</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span class="stat-number">1</span>
+                            <span class="stat-label">Level</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

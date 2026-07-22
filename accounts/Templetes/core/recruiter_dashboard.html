@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Dashboard - Talent Shield</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <span class="logo">🛡️</span>
+                <span class="brand-name">Talent Shield</span>
+            </div>
+            <div class="nav-links">
+                <a href="#">Dashboard</a>
+                <a href="#">Candidates</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Welcome, {{ user.username }}! 👔</h1>
+                <p>Find verified cybersecurity talent</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>📊 Recruiter Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-mini">
+                            <span class="stat-number">0</span>
+                            <span class="stat-label">Job Postings</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span class="stat-number">0</span>
+                            <span class="stat-label">Applications</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span class="stat-number">0</span>
+                            <span class="stat-label">Verified Candidates</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

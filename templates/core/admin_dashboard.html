@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Talent Shield</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F3F4F6; }
+        .navbar {
+            background: white;
+            padding: 16px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .nav-brand .logo { font-size: 28px; }
+        .nav-brand .brand-name {
+            background: linear-gradient(135deg, #6C3CE1, #00D4FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-links { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+        .nav-links a { text-decoration: none; color: #1A1A2E; font-weight: 500; }
+        .nav-links a:hover { color: #6C3CE1; }
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-outline {
+            background: transparent;
+            color: #1A1A2E;
+            border: 2px solid #E5E7EB;
+        }
+        .btn-outline:hover { border-color: #6C3CE1; color: #6C3CE1; }
+        .btn-primary {
+            background: linear-gradient(135deg, #6C3CE1, #5A2BC4);
+            color: white;
+        }
+        .dashboard { padding: 40px 0; }
+        .dashboard-header { margin-bottom: 30px; }
+        .dashboard-header h1 { font-size: 32px; color: #1A1A2E; }
+        .dashboard-header p { color: #6B7280; }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        .stat-card-link:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card-link .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            text-align: center;
+            height: 100%;
+            transition: box-shadow 0.3s ease;
+        }
+        .stat-card-link:hover .stat-card {
+            box-shadow: 0 8px 30px rgba(108, 60, 225, 0.15);
+        }
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: 800;
+            color: #6C3CE1;
+            display: block;
+        }
+        .stat-card .label {
+            font-size: 14px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+        .stat-card .icon {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .dashboard-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .card h3 { margin-bottom: 16px; color: #1A1A2E; }
+        
+        .risk-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        .risk-item:last-child { border-bottom: none; }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-low { background: #D1FAE5; color: #065F46; }
+        .badge-medium { background: #FEF3C7; color: #92400E; }
+        .badge-high { background: #FEE2E2; color: #DC2626; }
+        
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .quick-actions .action-btn {
+            padding: 10px 20px;
+            background: #F3F4F6;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #1A1A2E;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        .quick-actions .action-btn:hover {
+            background: #6C3CE1;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        .user-item:last-child { border-bottom: none; }
+        .user-item .username { font-weight: 600; color: #1A1A2E; }
+        .user-item .user-type { font-size: 13px; color: #6B7280; }
+        .user-item .user-status {
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 50px;
+        }
+        .user-status.active { background: #D1FAE5; color: #065F46; }
+        .user-status.inactive { background: #FEE2E2; color: #DC2626; }
+        
+        .view-all {
+            display: inline-block;
+            margin-top: 12px;
+            color: #6C3CE1;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .view-all:hover { text-decoration: underline; }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+            .dashboard-grid-2 { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container" style="max-width:1200px;">
+            <div class="nav-brand">
+                <span class="logo">🛡️</span>
+                <span class="brand-name">Talent Shield</span>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard/">Dashboard</a>
+                <a href="/admin/">Admin Panel</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>🛡️ Welcome, {{ user.username }}!</h1>
+                <p>System Administration Dashboard</p>
+            </div>
+
+            <!-- Stats Cards - Clickable -->
+            <div class="dashboard-grid">
+                <a href="/admin/accounts/user/" class="stat-card-link">
+                    <div class="stat-card">
+                        <span class="icon">👤</span>
+                        <span class="number">{{ total_users }}</span>
+                        <span class="label">Total Users</span>
+                    </div>
+                </a>
+                <a href="/admin/accounts/user/?user_type=candidate" class="stat-card-link">
+                    <div class="stat-card">
+                        <span class="icon">🎓</span>
+                        <span class="number">{{ total_candidates }}</span>
+                        <span class="label">Candidates</span>
+                    </div>
+                </a>
+                <a href="/admin/accounts/user/?user_type=recruiter" class="stat-card-link">
+                    <div class="stat-card">
+                        <span class="icon">👔</span>
+                        <span class="number">{{ total_recruiters }}</span>
+                        <span class="label">Recruiters</span>
+                    </div>
+                </a>
+                <a href="/jobs/" class="stat-card-link">
+                    <div class="stat-card">
+                        <span class="icon">💼</span>
+                        <span class="number">{{ total_jobs }}</span>
+                        <span class="label">Jobs</span>
+                    </div>
+                </a>
+                <a href="/my-jobs/" class="stat-card-link">
+                    <div class="stat-card">
+                        <span class="icon">📩</span>
+                        <span class="number">{{ total_applications }}</span>
+                        <span class="label">Applications</span>
+                    </div>
+                </a>
+                <a href="/admin/cv_processor/cvanalysis/" class="stat-card-link">
+                    <div class="stat-card">
+                        <span class="icon">📄</span>
+                        <span class="number">{{ total_cv_analyses }}</span>
+                        <span class="label">CVs Analyzed</span>
+                    </div>
+                </a>
+                <a href="/admin/cv_processor/cvanalysis/?fraud_risk_level=Low" class="stat-card-link">
+                    <div class="stat-card">
+                        <span class="icon">🟢</span>
+                        <span class="number">{{ low_risk_cvs }}</span>
+                        <span class="label">Low Risk</span>
+                    </div>
+                </a>
+                <a href="/admin/cv_processor/cvanalysis/?fraud_risk_level=Medium" class="stat-card-link">
+                    <div class="stat-card">
+                        <span class="icon">🟡</span>
+                        <span class="number">{{ medium_risk_cvs }}</span>
+                        <span class="label">Medium Risk</span>
+                    </div>
+                </a>
+                <a href="/admin/cv_processor/cvanalysis/?fraud_risk_level=High" class="stat-card-link">
+                    <div class="stat-card">
+                        <span class="icon">🔴</span>
+                        <span class="number">{{ high_risk_cvs }}</span>
+                        <span class="label">High Risk</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Second Row -->
+            <div class="dashboard-grid-2">
+                <!-- Users List -->
+                <div class="card">
+                    <h3>👤 Recent Users</h3>
+                    {% if users %}
+                        {% for u in users|slice:":5" %}
+                            <div class="user-item">
+                                <div>
+                                    <div class="username">{{ u.username }}</div>
+                                    <div class="user-type">{{ u.get_user_type_display }}</div>
+                                </div>
+                                <span class="user-status {% if u.is_active %}active{% else %}inactive{% endif %}">
+                                    {% if u.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color:#6B7280;">No users registered yet.</p>
+                    {% endif %}
+                    <a href="/admin/accounts/user/" class="view-all">View All Users →</a>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <h3>⚡ Quick Actions</h3>
+                    <div class="quick-actions">
+                        <a href="/admin/accounts/user/" class="action-btn">👤 Manage Users</a>
+                        <a href="/admin/cv_processor/cvanalysis/" class="action-btn">📄 CV Analysis</a>
+                        <a href="/admin/jobs/job/" class="action-btn">💼 Manage Jobs</a>
+                        <a href="/admin/jobs/jobapplication/" class="action-btn">📩 Applications</a>
+                        <a href="/admin/gamification/challenge/" class="action-btn">🎯 Challenges</a>
+                        <a href="/jobs/" class="action-btn">🔍 View Jobs</a>
+                        <a href="/challenges/" class="action-btn">🎮 Challenges</a>
+                        <a href="/leaderboard/" class="action-btn">🏆 Leaderboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

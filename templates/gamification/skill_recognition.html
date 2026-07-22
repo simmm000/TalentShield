@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Recognition - Talent Shield</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F3F4F6; }
+        .navbar {
+            background: white;
+            padding: 16px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .nav-brand .logo { font-size: 28px; }
+        .nav-brand .brand-name {
+            background: linear-gradient(135deg, #6C3CE1, #00D4FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-links { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+        .nav-links a { text-decoration: none; color: #1A1A2E; font-weight: 500; }
+        .nav-links a:hover { color: #6C3CE1; }
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-outline {
+            background: transparent;
+            color: #1A1A2E;
+            border: 2px solid #E5E7EB;
+        }
+        .btn-outline:hover { border-color: #6C3CE1; color: #6C3CE1; }
+        .btn-primary {
+            background: linear-gradient(135deg, #6C3CE1, #5A2BC4);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108,60,225,0.4); }
+        .page-header { padding: 30px 0 20px; }
+        .page-header h1 { font-size: 32px; color: #1A1A2E; }
+        .page-header p { color: #6B7280; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .stat-card .number { font-size: 28px; font-weight: 800; color: #6C3CE1; }
+        .stat-card .label { font-size: 12px; color: #6B7280; }
+        
+        /* Level Badge */
+        .level-badge {
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .level-progress {
+            margin: 20px 0 30px;
+            padding: 20px 24px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .level-progress .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #E5E7EB;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .level-progress .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        .next-level {
+            font-size: 14px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+        
+        /* Badge Cards */
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .badge-card {
+            background: white;
+            padding: 24px 16px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 3px solid #E5E7EB;
+            position: relative;
+        }
+        .badge-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(108,60,225,0.15);
+        }
+        .badge-card .icon { font-size: 48px; display: block; margin-bottom: 8px; }
+        .badge-card .name { font-weight: 700; font-size: 16px; color: #1A1A2E; }
+        .badge-card .level-text { font-size: 14px; color: #6B7280; margin-top: 4px; }
+        
+        /* Current Badge */
+        .badge-card.current {
+            border-color: #6C3CE1;
+            box-shadow: 0 4px 20px rgba(108,60,225,0.2);
+        }
+        .badge-card.current::after {
+            content: '✅ Current';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #10B981;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 50px;
+        }
+        
+        /* Locked Badge */
+        .badge-card.locked {
+            opacity: 0.5;
+            filter: grayscale(0.5);
+        }
+        .badge-card.locked::after {
+            content: '🔒 Locked';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #6B7280;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 50px;
+        }
+        
+        /* Unlocked Badge (Not Current) */
+        .badge-card.unlocked {
+            border-color: #D1FAE5;
+        }
+        .badge-card.unlocked::after {
+            content: '✅ Unlocked';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #D1FAE5;
+            color: #065F46;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 50px;
+        }
+        
+        .no-skills {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+        }
+        .no-skills .icon { font-size: 64px; display: block; margin-bottom: 16px; }
+        
+        .level-up-section {
+            text-align: center;
+            margin-top: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .level-up-section h2 {
+            color: #1A1A2E;
+            margin-bottom: 10px;
+        }
+        .level-up-section p {
+            color: #6B7280;
+            margin-bottom: 16px;
+        }
+        
+        @media (max-width: 768px) {
+            .badge-grid { grid-template-columns: 1fr 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .nav-links { gap: 12px; }
+        }
+        @media (max-width: 480px) {
+            .badge-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <span class="logo">🛡️</span>
+                <span class="brand-name">Talent Shield</span>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard/">Dashboard</a>
+                <a href="/profile/">Profile</a>
+                <a href="/challenges/">Challenges</a>
+                <a href="/jobs/">Jobs</a>
+                <a href="/leaderboard/">Leaderboard</a>
+                <a href="/gamification/skill-recognition/" style="font-weight:700; color:#6C3CE1;">🏅 Skills</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🏅 Skill Badges</h1>
+            <p>Your level-based skill badges</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="number">{{ total_skills|default:0 }}</span>
+                <span class="label">Skills Detected</span>
+            </div>
+            <div class="stat-card">
+                <span class="number">{{ challenges_passed|default:0 }}</span>
+                <span class="label">Challenges Passed</span>
+            </div>
+            <div class="stat-card">
+                <span class="number">{{ total_points|default:0 }}</span>
+                <span class="label">Total Points</span>
+            </div>
+            <div class="stat-card">
+                <span class="number">{{ level }}</span>
+                <span class="label">Current Level</span>
+            </div>
+        </div>
+
+        <!-- Level Badge & Progress -->
+        <div class="level-progress">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <span class="level-badge" style="background:{{ level_color|default:'#6B7280' }}; color:white;">
+                    {{ level_icon|default:'📚' }} {{ level|default:'Novice' }}
+                </span>
+                <span style="font-weight:600; font-size:18px; color:#1A1A2E;">
+                    ⭐ {{ challenges_passed|default:0 }} challenges passed
+                </span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width:{{ challenges_passed|default:0 }}%; background:{{ level_color|default:'#6B7280' }};"></div>
+            </div>
+            <div class="next-level">
+                🎯 Next level: <strong>{{ next_level_challenges|default:3 }}</strong> challenges to reach next level
+            </div>
+        </div>
+
+        <!-- Badges -->
+        <h2 style="font-size:22px; margin-bottom:16px;">🏆 Your Skill Badges</h2>
+        <div class="badge-grid">
+            <!-- Novice Badge -->
+            <div class="badge-card {% if level == 'Novice' %}current{% elif challenges_passed >= 0 %}unlocked{% else %}locked{% endif %}">
+                <span class="icon">📚</span>
+                <div class="name">Novice</div>
+                <div class="level-text">0+ challenges</div>
+                {% if level == 'Novice' %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#10B981;">✅ Current Badge</span>
+                {% endif %}
+            </div>
+
+            <!-- Beginner Badge -->
+            <div class="badge-card {% if level == 'Beginner' %}current{% elif challenges_passed >= 3 %}unlocked{% else %}locked{% endif %}">
+                <span class="icon">🌱</span>
+                <div class="name">Beginner</div>
+                <div class="level-text">3+ challenges</div>
+                {% if level == 'Beginner' %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#10B981;">✅ Current Badge</span>
+                {% elif challenges_passed >= 3 %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#065F46;">✅ Unlocked</span>
+                {% else %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#6B7280;">🔒 {{ 3|add:challenges_passed|add:"-3" }} challenges to go</span>
+                {% endif %}
+            </div>
+
+            <!-- Intermediate Badge -->
+            <div class="badge-card {% if level == 'Intermediate' %}current{% elif challenges_passed >= 5 %}unlocked{% else %}locked{% endif %}">
+                <span class="icon">💪</span>
+                <div class="name">Intermediate</div>
+                <div class="level-text">5+ challenges</div>
+                {% if level == 'Intermediate' %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#10B981;">✅ Current Badge</span>
+                {% elif challenges_passed >= 5 %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#065F46;">✅ Unlocked</span>
+                {% else %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#6B7280;">🔒 {{ 5|add:challenges_passed|add:"-5" }} challenges to go</span>
+                {% endif %}
+            </div>
+
+            <!-- Advanced Badge -->
+            <div class="badge-card {% if level == 'Advanced' %}current{% elif challenges_passed >= 10 %}unlocked{% else %}locked{% endif %}">
+                <span class="icon">🚀</span>
+                <div class="name">Advanced</div>
+                <div class="level-text">10+ challenges</div>
+                {% if level == 'Advanced' %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#10B981;">✅ Current Badge</span>
+                {% elif challenges_passed >= 10 %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#065F46;">✅ Unlocked</span>
+                {% else %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#6B7280;">🔒 {{ 10|add:challenges_passed|add:"-10" }} challenges to go</span>
+                {% endif %}
+            </div>
+
+            <!-- Expert Badge -->
+            <div class="badge-card {% if level == 'Expert' %}current{% elif challenges_passed >= 20 %}unlocked{% else %}locked{% endif %}">
+                <span class="icon">👑</span>
+                <div class="name">Expert</div>
+                <div class="level-text">20+ challenges</div>
+                {% if level == 'Expert' %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#10B981;">✅ Current Badge</span>
+                {% elif challenges_passed >= 20 %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#065F46;">✅ Unlocked</span>
+                {% else %}
+                    <span style="display:block; margin-top:8px; font-size:12px; color:#6B7280;">🔒 {{ 20|add:challenges_passed|add:"-20" }} challenges to go</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Go to Challenges -->
+        <div class="level-up-section">
+            <h2>🎯 Increase Your Level to Change Badge!</h2>
+            <p>Complete more challenges to unlock the next level badge!</p>
+            <a href="/challenges/" class="btn btn-primary" style="display:inline-block; padding:12px 32px;">
+                🚀 Go to Challenges
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,205 @@
+# cv_processor/views.py
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from .bert_parser import BERTCVProcessor
+from .fraud_detector import FraudDetector
+from .models import CVAnalysis
+from accounts.models import CandidateProfile, User
+import json
+from datetime import datetime
+
+class CVUploadAndAnalyzeView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        # Verify user is candidate
+        if request.user.user_type != 'candidate':
+            return Response(
+                {'error': 'Only candidates can upload CVs'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Check if file uploaded
+        if 'cv_file' not in request.FILES:
+            return Response(
+                {'error': 'No CV file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        file = request.FILES['cv_file']
+        
+        # Check file size (5MB max)
+        if file.size > 5242880:
+            return Response(
+                {'error': 'File too large. Maximum size is 5MB.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Process CV with BERT
+            processor = BERTCVProcessor()
+            parsed_data = processor.parse_cv(file)
+            
+            if 'error' in parsed_data:
+                return Response(
+                    {'error': parsed_data['error']},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Calculate candidate age
+            profile = CandidateProfile.objects.get(user=request.user)
+            age = None
+            if profile.date_of_birth:
+                age = datetime.now().year - profile.date_of_birth.year
+            
+            graduation_year = profile.graduation_year
+            
+            # Get existing CV hashes for duplicate detection
+            existing_cv_hashes = list(
+                CVAnalysis.objects.exclude(
+                    candidate=request.user
+                ).values_list('cv_hash', flat=True)
+            )
+            
+            # Detect fraud
+            detector = FraudDetector()
+            fraud_result = detector.calculate_fraud_score(
+                parsed_data,
+                age or 0,
+                graduation_year or 0,
+                existing_cv_hashes
+            )
+            
+            # Save analysis results
+            cv_analysis = CVAnalysis.objects.create(
+                candidate=request.user,
+                extracted_skills=parsed_data['skills'],
+                extracted_certifications=parsed_data['certifications'],
+                experience_years=parsed_data['experience_years'],
+                fraud_score=fraud_result['fraud_score'],
+                fraud_risk_level=fraud_result['risk_level'],
+                fraud_details=fraud_result,
+                cv_hash=fraud_result['cv_hash']
+            )
+            
+            # Update candidate profile with extracted data
+            profile.skills = parsed_data['skills']
+            profile.certifications = parsed_data['certifications']
+            profile.experience_years = parsed_data['experience_years']
+            profile.cv_text = parsed_data['cv_text']
+            
+            # Save CV file
+            filename = f"cv_{request.user.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+            saved_path = default_storage.save(f'cvs/{filename}', ContentFile(file.read()))
+            profile.cv_file = saved_path
+            profile.save()
+            
+            return Response({
+                'success': True,
+                'message': 'CV analyzed successfully',
+                'parsed_data': {
+                    'skills': parsed_data['skills'],
+                    'certifications': parsed_data['certifications'],
+                    'experience_years': parsed_data['experience_years'],
+                    'word_count': parsed_data['word_count'],
+                },
+                'fraud_analysis': {
+                    'fraud_score': fraud_result['fraud_score_percentage'],
+                    'risk_level': fraud_result['risk_level'],
+                    'flagged_sections': fraud_result['flagged_sections'],
+                    'factors': [
+                        {
+                            'factor': f['factor'],
+                            'score': f['score'],
+                            'details': f['details']
+                        } for f in fraud_result['factors']
+                    ]
+                },
+                'analysis_id': cv_analysis.id
+            }, status=status.HTTP_201_CREATED)
+            
+        except CandidateProfile.DoesNotExist:
+            return Response(
+                {'error': 'Candidate profile not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Analysis failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class RecruiterFraudCheckView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, candidate_id):
+        # Verify user is recruiter
+        if request.user.user_type != 'recruiter':
+            return Response(
+                {'error': 'Only recruiters can view fraud checks'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            # Get latest CV analysis for candidate
+            analysis = CVAnalysis.objects.filter(
+                candidate_id=candidate_id
+            ).latest('created_at')
+            
+            return Response({
+                'candidate_id': candidate_id,
+                'candidate_name': analysis.candidate.username,
+                'fraud_score': analysis.fraud_score_percentage,
+                'risk_level': analysis.fraud_risk_level,
+                'fraud_details': analysis.fraud_details,
+                'verified_skills': analysis.extracted_skills,
+                'claimed_certifications': analysis.extracted_certifications,
+                'analysis_date': analysis.created_at
+            })
+            
+        except CVAnalysis.DoesNotExist:
+            return Response(
+                {'error': 'No CV analysis found for this candidate'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+class FraudStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        # Only recruiters and admins can view statistics
+        if request.user.user_type not in ['recruiter', 'admin']:
+            return Response(
+                {'error': 'Access denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        total_analyses = CVAnalysis.objects.count()
+        high_risk = CVAnalysis.objects.filter(fraud_risk_level='High').count()
+        medium_risk = CVAnalysis.objects.filter(fraud_risk_level='Medium').count()
+        low_risk = CVAnalysis.objects.filter(fraud_risk_level='Low').count()
+        
+        avg_fraud_score = CVAnalysis.objects.aggregate(
+            avg_score=models.Avg('fraud_score')
+        )['avg_score']
+        
+        return Response({
+            'total_cvs_analyzed': total_analyses,
+            'risk_breakdown': {
+                'high': high_risk,
+                'medium': medium_risk,
+                'low': low_risk
+            },
+            'average_fraud_score': round(avg_fraud_score * 100, 1) if avg_fraud_score else 0,
+            'risk_percentages': {
+                'high': round(high_risk / total_analyses * 100, 1) if total_analyses > 0 else 0,
+                'medium': round(medium_risk / total_analyses * 100, 1) if total_analyses > 0 else 0,
+                'low': round(low_risk / total_analyses * 100, 1) if total_analyses > 0 else 0
+            }
+        })
+        

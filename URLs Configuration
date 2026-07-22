@@ -1,0 +1,25 @@
+# cv_processor/urls.py
+
+from django.urls import path
+from .views import (
+    CVUploadAndAnalyzeView,
+    RecruiterFraudCheckView,
+    FraudStatisticsView
+)
+
+urlpatterns = [
+    path('api/cv/upload-analyze/', CVUploadAndAnalyzeView.as_view(), name='cv-upload-analyze'),
+    path('api/cv/fraud-check/<int:candidate_id>/', RecruiterFraudCheckView.as_view(), name='fraud-check'),
+    path('api/cv/fraud-statistics/', FraudStatisticsView.as_view(), name='fraud-statistics'),
+]
+
+# recruitment_portal/urls.py
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('accounts.urls')),
+    path('', include('cv_processor.urls')),
+    path('', include('gamification.urls')),
+]

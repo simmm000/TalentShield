@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post a Job - Talent Shield</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;
+        }
+        .form-group textarea { min-height: 100px; }
+        .btn { display: inline-block; padding: 12px 30px; background: #6C3CE1; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background: #5A2BC4; }
+        .back { color: #6C3CE1; text-decoration: none; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .alert-success { background: #D1FAE5; color: #065F46; padding: 12px; border-radius: 5px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/jobs/" class="back">← Back to Jobs</a>
+        <h1>📝 Post a New Job</h1>
+        {% if messages %}{% for message in messages %}<div class="alert-success">{{ message }}</div>{% endfor %}{% endif %}
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Job Title *</label>
+                <input type="text" name="title" placeholder="e.g., Cybersecurity Analyst" required>
+            </div>
+            <div class="form-group">
+                <label>Company Name *</label>
+                <input type="text" name="company" placeholder="e.g., Tech Security Inc." required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Job Type *</label>
+                    <select name="job_type" required>
+                        <option value="full_time">Full Time</option>
+                        <option value="part_time">Part Time</option>
+                        <option value="contract">Contract</option>
+                        <option value="internship">Internship</option>
+                        <option value="freelance">Freelance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Experience Level *</label>
+                    <select name="experience_level" required>
+                        <option value="entry">Entry Level (0-1 years)</option>
+                        <option value="junior">Junior (1-3 years)</option>
+                        <option value="mid">Mid Level (3-5 years)</option>
+                        <option value="senior">Senior (5+ years)</option>
+                        <option value="lead">Lead / Manager</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Location *</label>
+                    <input type="text" name="location" placeholder="e.g., Kathmandu, Nepal" required>
+                </div>
+                <div class="form-group">
+                    <label>Remote</label>
+                    <input type="checkbox" name="is_remote" style="width:auto;"> <label style="display:inline; font-weight:normal;">This is a remote position</label>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Min Salary</label>
+                    <input type="number" name="salary_min" placeholder="50000">
+                </div>
+                <div class="form-group">
+                    <label>Max Salary</label>
+                    <input type="number" name="salary_max" placeholder="80000">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Required Skills</label>
+                <input type="text" name="skills" placeholder="Python, Linux, Wireshark, Nmap">
+                <small style="color:#6B7280;">Separate skills with commas</small>
+            </div>
+            <div class="form-group">
+                <label>Job Description *</label>
+                <textarea name="description" placeholder="Describe the role..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Requirements *</label>
+                <textarea name="requirements" placeholder="List qualifications..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Responsibilities</label>
+                <textarea name="responsibilities" placeholder="List day-to-day responsibilities..."></textarea>
+            </div>
+            <button type="submit" class="btn">Post Job</button>
+        </form>
+    </div>
+</body>
+</html>

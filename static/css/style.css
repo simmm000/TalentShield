@@ -1,0 +1,8 @@
+/* Hero Image */
+.hero-image {
+    background-image: url('/static/images/fraud_detection.png');
+    background-size: cover;
+    background-position: center;
+    min-height: 400px;
+    border-radius: 16px;
+}

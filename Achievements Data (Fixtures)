@@ -1,0 +1,64 @@
+# gamification/fixtures/initial_achievements.json
+
+[
+    {
+        "model": "gamification.achievement",
+        "pk": 1,
+        "fields": {
+            "name": "Challenge Master",
+            "description": "Completed 10 cybersecurity challenges",
+            "type": "challenge_master",
+            "icon": "🏆",
+            "points_bonus": 50,
+            "requirements": {"challenges_passed": 10}
+        }
+    },
+    {
+        "model": "gamification.achievement",
+        "pk": 2,
+        "fields": {
+            "name": "Verified Professional",
+            "description": "Certifications verified successfully",
+            "type": "certification_verified",
+            "icon": "✅",
+            "points_bonus": 30,
+            "requirements": {"certifications_verified": 3}
+        }
+    },
+    {
+        "model": "gamification.achievement",
+        "pk": 3,
+        "fields": {
+            "name": "Trustworthy Candidate",
+            "description": "CV passed fraud detection with low risk score",
+            "type": "fraud_free",
+            "icon": "🛡️",
+            "points_bonus": 40,
+            "requirements": {"fraud_score_lt": 0.3}
+        }
+    },
+    {
+        "model": "gamification.achievement",
+        "pk": 4,
+        "fields": {
+            "name": "Top Performer",
+            "description": "Average challenge score above 80%",
+            "type": "top_performer",
+            "icon": "⭐",
+            "points_bonus": 60,
+            "requirements": {"average_score_gt": 80}
+        }
+    },
+    {
+        "model": "gamification.achievement",
+        "pk": 5,
+        "fields": {
+            "name": "Quick Learner",
+            "description": "Completed 5 challenges in one day",
+            "type": "quick_learner",
+            "icon": "🚀",
+            "points_bonus": 35,
+            "requirements": {"daily_challenges": 5}
+        }
+    }
+]

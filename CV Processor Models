@@ -1,0 +1,37 @@
+# cv_processor/models.py
+
+from django.db import models
+from django.conf import settings
+
+class CVAnalysis(models.Model):
+    RISK_LEVELS = (
+        ('Low', 'Low Risk'),
+        ('Medium', 'Medium Risk'),
+        ('High', 'High Risk'),
+    )
+    
+    candidate = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='cv_analyses'
+    )
+    extracted_skills = models.JSONField(default=list)
+    extracted_certifications = models.JSONField(default=list)
+    experience_years = models.FloatField(default=0.0)
+    fraud_score = models.FloatField(default=0.0)
+    fraud_risk_level = models.CharField(max_length=10, choices=RISK_LEVELS, default='Low')
+    fraud_details = models.JSONField(default=dict)
+    cv_hash = models.CharField(max_length=64, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    @property
+    def fraud_score_percentage(self):
+        return f"{round(self.fraud_score * 100, 1)}%"
+    
+    def __str__(self):
+        return f"{self.candidate.username} - {self.fraud_risk_level} ({self.fraud_score})"
+    
+    class Meta:
+        ordering = ['-created_at']
+        

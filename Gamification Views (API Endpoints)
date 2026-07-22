@@ -1,0 +1,426 @@
+# gamification/views.py
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Avg, Count, Q
+from django.shortcuts import get_object_or_404
+from .models import (
+    Challenge, ChallengeAttempt, Achievement, 
+    UserAchievement, GamificationProfile
+)
+from accounts.models import CandidateProfile
+from cv_processor.models import CVAnalysis
+import random
+import json
+from datetime import datetime, timedelta
+
+class AvailableChallengesView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        # Only candidates can view challenges
+        if request.user.user_type != 'candidate':
+            return Response(
+                {'error': 'Only candidates can access challenges'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Get challenges not attempted or failed
+        attempted_challenge_ids = ChallengeAttempt.objects.filter(
+            candidate=request.user,
+            is_correct=True
+        ).values_list('challenge_id', flat=True)
+        
+        challenges = Challenge.objects.filter(
+            is_active=True
+        ).exclude(
+            id__in=attempted_challenge_ids
+        )
+        
+        # Get difficulty filter
+        difficulty = request.GET.get('difficulty')
+        category = request.GET.get('category')
+        
+        if difficulty:
+            challenges = challenges.filter(difficulty=difficulty)
+        if category:
+            challenges = challenges.filter(category=category)
+        
+        # Randomize order
+        challenges = list(challenges.order_by('?'))
+        
+        # Limit to 10 per request
+        challenges = challenges[:10]
+        
+        return Response({
+            'count': len(challenges),
+            'challenges': [
+                {
+                    'id': c.id,
+                    'title': c.title,
+                    'description': c.description,
+                    'category': c.category,
+                    'difficulty': c.difficulty,
+                    'points': c.points,
+                    'time_limit_seconds': c.time_limit_seconds,
+                    'question': c.question,
+                    'scenario': c.scenario,
+                    'options': c.options if c.answer_type == 'multiple_choice' else [],
+                    'answer_type': c.answer_type,
+                    'hints_count': len(c.hints)
+                }
+                for c in challenges
+            ]
+        })
+
+class StartChallengeView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, challenge_id):
+        if request.user.user_type != 'candidate':
+            return Response(
+                {'error': 'Only candidates can attempt challenges'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        challenge = get_object_or_404(Challenge, id=challenge_id, is_active=True)
+        
+        # Check if already passed
+        already_passed = ChallengeAttempt.objects.filter(
+            candidate=request.user,
+            challenge=challenge,
+            is_correct=True
+        ).exists()
+        
+        if already_passed:
+            return Response(
+                {'error': 'You have already passed this challenge'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get or create attempt
+        attempt, created = ChallengeAttempt.objects.get_or_create(
+            candidate=request.user,
+            challenge=challenge,
+            is_correct=False,
+            defaults={
+                'submitted_answer': '',
+                'score': 0,
+                'started_at': datetime.now()
+            }
+        )
+        
+        if not created and attempt.completed_at is None:
+            # Existing incomplete attempt
+            return Response({
+                'message': 'Continue your previous attempt',
+                'attempt_id': attempt.id,
+                'challenge': {
+                    'id': challenge.id,
+                    'title': challenge.title,
+                    'question': challenge.question,
+                    'scenario': challenge.scenario,
+                    'options': challenge.options if challenge.answer_type == 'multiple_choice' else [],
+                    'answer_type': challenge.answer_type,
+                    'time_limit_seconds': challenge.time_limit_seconds,
+                    'points': challenge.points,
+                    'hints': challenge.hints
+                }
+            })
+        
+        return Response({
+            'message': 'Challenge started',
+            'attempt_id': attempt.id,
+            'challenge': {
+                'id': challenge.id,
+                'title': challenge.title,
+                'question': challenge.question,
+                'scenario': challenge.scenario,
+                'options': challenge.options if challenge.answer_type == 'multiple_choice' else [],
+                'answer_type': challenge.answer_type,
+                'time_limit_seconds': challenge.time_limit_seconds,
+                'points': challenge.points,
+                'hints': challenge.hints
+            }
+        })
+
+class SubmitChallengeView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, challenge_id):
+        if request.user.user_type != 'candidate':
+            return Response(
+                {'error': 'Only candidates can submit answers'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        challenge = get_object_or_404(Challenge, id=challenge_id, is_active=True)
+        attempt = get_object_or_404(
+            ChallengeAttempt,
+            id=request.data.get('attempt_id'),
+            candidate=request.user,
+            challenge=challenge,
+            is_correct=False
+        )
+        
+        submitted_answer = request.data.get('answer', '')
+        time_taken = request.data.get('time_taken_seconds', 0)
+        
+        if not submitted_answer:
+            return Response(
+                {'error': 'Please provide an answer'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Evaluate answer
+        attempt.submitted_answer = submitted_answer
+        attempt.time_taken_seconds = time_taken
+        
+        # Check if correct
+        is_correct = self._evaluate_answer(
+            challenge, 
+            submitted_answer,
+            time_taken,
+            challenge.time_limit_seconds
+        )
+        
+        attempt.is_correct = is_correct
+        attempt.completed_at = datetime.now()
+        
+        # Calculate score based on correctness, time, and attempts
+        score = self._calculate_score(
+            is_correct,
+            time_taken,
+            challenge.time_limit_seconds,
+            attempt.attempts_count
+        )
+        attempt.score = score
+        
+        if is_correct:
+            attempt.status = 'passed'
+        else:
+            attempt.status = 'failed'
+            attempt.attempts_count += 1
+        
+        attempt.save()
+        
+        # Update gamification profile if passed
+        if is_correct:
+            gamification_profile, _ = GamificationProfile.objects.get_or_create(
+                candidate=request.user
+            )
+            
+            # Add points
+            points_earned = challenge.points
+            if time_taken < challenge.time_limit_seconds * 0.5:
+                points_earned += 5  # Bonus for fast completion
+            elif time_taken > challenge.time_limit_seconds * 0.9:
+                points_earned -= 2  # Penalty for nearly timeout
+            
+            gamification_profile.add_points(max(points_earned, 1))
+            
+            # Update stats
+            gamification_profile.challenges_attempted += 1
+            gamification_profile.challenges_passed += 1
+            
+            # Update average score
+            avg_score = ChallengeAttempt.objects.filter(
+                candidate=request.user,
+                is_correct=True
+            ).aggregate(avg=Avg('score'))['avg']
+            
+            gamification_profile.average_score = avg_score or 0
+            
+            # Update streak
+            gamification_profile.update_streak()
+            
+            # Check for achievements
+            self._check_achievements(request.user)
+            
+            gamification_profile.save()
+        
+        return Response({
+            'success': True,
+            'is_correct': is_correct,
+            'score': score,
+            'message': 'Correct answer!' if is_correct else 'Incorrect answer. Try again!',
+            'points_earned': challenge.points if is_correct else 0
+        })
+    
+    def _evaluate_answer(self, challenge, answer, time_taken, time_limit):
+        """Evaluate the submitted answer"""
+        if challenge.answer_type == 'multiple_choice':
+            return str(answer).strip().lower() == str(challenge.correct_answer).strip().lower()
+        elif challenge.answer_type == 'code':
+            # Simple code evaluation - could be expanded
+            return str(answer).strip() == str(challenge.correct_answer).strip()
+        else:
+            # Text answer - check similarity
+            import re
+            clean_answer = re.sub(r'[^\w\s]', '', str(answer).lower()).strip()
+            clean_correct = re.sub(r'[^\w\s]', '', str(challenge.correct_answer).lower()).strip()
+            
+            # Check if answer contains key phrases
+            key_phrases = clean_correct.split()
+            matches = sum(1 for phrase in key_phrases if phrase in clean_answer)
+            match_ratio = matches / len(key_phrases) if key_phrases else 0
+            
+            # Must match at least 70% of key phrases
+            return match_ratio >= 0.7
+    
+    def _calculate_score(self, is_correct, time_taken, time_limit, attempts):
+        """Calculate score based on performance"""
+        if not is_correct:
+            return 0.0
+        
+        # Time factor: faster = higher score
+        time_ratio = min(time_taken / time_limit, 1.0)
+        time_score = (1 - time_ratio) * 30  # Up to 30 bonus points
+        
+        # Attempts factor: fewer attempts = higher score
+        attempt_penalty = (attempts - 1) * 5
+        attempt_score = max(0, 30 - attempt_penalty)  # Up to 30 points
+        
+        # Base score
+        base_score = 40  # Base for correct answer
+        
+        total_score = min(base_score + time_score + attempt_score, 100)
+        return round(total_score, 1)
+    
+    def _check_achievements(self, user):
+        """Check and award achievements"""
+        profile = GamificationProfile.objects.get(candidate=user)
+        
+        # Check challenge master (10+ challenges passed)
+        if profile.challenges_passed >= 10:
+            self._award_achievement(user, 'challenge_master')
+        
+        # Check fraud-free (fraud_score < 0.3)
+        try:
+            cv_analysis = CVAnalysis.objects.filter(
+                candidate=user
+            ).latest('created_at')
+            
+            if cv_analysis.fraud_score < 0.3:
+                self._award_achievement(user, 'fraud_free')
+        except CVAnalysis.DoesNotExist:
+            pass
+        
+        # Check top performer (average score > 80)
+        if profile.average_score > 80:
+            self._award_achievement(user, 'top_performer')
+        
+        # Check quick learner (5 challenges passed in 1 day)
+        today = datetime.now().date()
+        today_passed = ChallengeAttempt.objects.filter(
+            candidate=user,
+            is_correct=True,
+            completed_at__date=today
+        ).count()
+        
+        if today_passed >= 5:
+            self._award_achievement(user, 'quick_learner')
+    
+    def _award_achievement(self, user, achievement_type):
+        """Award an achievement to a user"""
+        try:
+            achievement = Achievement.objects.get(type=achievement_type)
+            UserAchievement.objects.get_or_create(
+                candidate=user,
+                achievement=achievement
+            )
+            
+            # Add points bonus
+            if achievement.points_bonus > 0:
+                profile = GamificationProfile.objects.get(candidate=user)
+                profile.add_points(achievement.points_bonus)
+                
+                # Add badge
+                profile.badges.append(achievement.name)
+                profile.badges_count += 1
+                profile.save()
+                
+        except Achievement.DoesNotExist:
+            pass
+
+class GamificationProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        if request.user.user_type != 'candidate':
+            return Response(
+                {'error': 'Access denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        profile, _ = GamificationProfile.objects.get_or_create(
+            candidate=request.user
+        )
+        
+        # Get recent achievements
+        recent_achievements = UserAchievement.objects.filter(
+            candidate=request.user
+        ).select_related('achievement').order_by('-earned_at')[:5]
+        
+        # Get recent challenge attempts
+        recent_attempts = ChallengeAttempt.objects.filter(
+            candidate=request.user
+        ).select_related('challenge').order_by('-completed_at')[:10]
+        
+        return Response({
+            'level': profile.level,
+            'total_points': profile.total_points,
+            'experience_points': profile.experience_points,
+            'xp_to_next_level': profile.level * 100 - profile.experience_points,
+            'challenges_passed': profile.challenges_passed,
+            'challenges_attempted': profile.challenges_attempted,
+            'average_score': round(profile.average_score, 1),
+            'current_streak': profile.current_streak_days,
+            'longest_streak': profile.longest_streak_days,
+            'badges': profile.badges,
+            'badges_count': profile.badges_count,
+            'recent_achievements': [
+                {
+                    'name': ua.achievement.name,
+                    'description': ua.achievement.description,
+                    'icon': ua.achievement.icon,
+                    'earned_at': ua.earned_at
+                }
+                for ua in recent_achievements
+            ],
+            'recent_attempts': [
+                {
+                    'challenge_title': ra.challenge.title,
+                    'is_correct': ra.is_correct,
+                    'score': ra.score,
+                    'completed_at': ra.completed_at
+                }
+                for ra in recent_attempts
+            ]
+        })
+
+class LeaderboardView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        # Get top candidates by points
+        profiles = GamificationProfile.objects.filter(
+            candidate__user_type='candidate'
+        ).select_related('candidate').order_by('-total_points')[:20]
+        
+        return Response({
+            'leaderboard': [
+                {
+                    'rank': idx + 1,
+                    'username': profile.candidate.username,
+                    'level': profile.level,
+                    'total_points': profile.total_points,
+                    'challenges_passed': profile.challenges_passed,
+                    'badges_count': profile.badges_count
+                }
+                for idx, profile in enumerate(profiles)
+            ]
+        })
+        

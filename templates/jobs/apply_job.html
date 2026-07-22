@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply - Talent Shield</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; }
+        .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; min-height: 150px; }
+        .btn { display: inline-block; padding: 12px 30px; background: #6C3CE1; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background: #5A2BC4; }
+        .back { color: #6C3CE1; text-decoration: none; }
+        .job-info { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'job_detail' job.id %}" class="back">← Back to Job</a>
+        <h1>📩 Apply for this Job</h1>
+        <div class="job-info">
+            <h3>{{ job.title }}</h3>
+            <p style="color:#6C3CE1;">{{ job.company }}</p>
+            <p>📍 {{ job.location }}</p>
+        </div>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Cover Letter</label>
+                <textarea name="cover_letter" placeholder="Tell us why you're the perfect fit..."></textarea>
+            </div>
+            <button type="submit" class="btn">📩 Submit Application</button>
+        </form>
+    </div>
+</body>
+</html>

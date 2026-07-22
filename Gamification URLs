@@ -1,0 +1,18 @@
+# gamification/urls.py
+
+from django.urls import path
+from .views import (
+    AvailableChallengesView,
+    StartChallengeView,
+    SubmitChallengeView,
+    GamificationProfileView,
+    LeaderboardView
+)
+
+urlpatterns = [
+    path('api/challenges/available/', AvailableChallengesView.as_view(), name='available-challenges'),
+    path('api/challenges/start/<int:challenge_id>/', StartChallengeView.as_view(), name='start-challenge'),
+    path('api/challenges/submit/<int:challenge_id>/', SubmitChallengeView.as_view(), name='submit-challenge'),
+    path('api/gamification/profile/', GamificationProfileView.as_view(), name='gamification-profile'),
+    path('api/gamification/leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
+]

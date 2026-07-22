@@ -1,0 +1,18 @@
+GET /api/cv/fraud-statistics/
+Headers: Authorization: Bearer <access_token>
+
+# Response:
+{
+    "total_cvs_analyzed": 150,
+    "risk_breakdown": {
+        "high": 12,
+        "medium": 25,
+        "low": 113
+    },
+    "average_fraud_score": 28.5,
+    "risk_percentages": {
+        "high": 8.0,
+        "medium": 16.7,
+        "low": 75.3
+    }
+}

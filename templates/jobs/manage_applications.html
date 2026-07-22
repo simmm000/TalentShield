@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Applications - Talent Shield</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F3F4F6; }
+        .navbar {
+            background: white;
+            padding: 16px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .nav-brand .logo { font-size: 28px; }
+        .nav-brand .brand-name {
+            background: linear-gradient(135deg, #6C3CE1, #00D4FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-links { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+        .nav-links a { text-decoration: none; color: #1A1A2E; font-weight: 500; }
+        .nav-links a:hover { color: #6C3CE1; }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6C3CE1, #5A2BC4);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-success {
+            background: #10B981;
+            color: white;
+        }
+        .btn-success:hover { transform: translateY(-2px); }
+        .btn-outline {
+            background: transparent;
+            color: #1A1A2E;
+            border: 2px solid #E5E7EB;
+        }
+        .btn-outline:hover { border-color: #6C3CE1; color: #6C3CE1; }
+        .btn-danger {
+            background: #EF4444;
+            color: white;
+        }
+        .btn-danger:hover { background: #DC2626; }
+        .btn-view {
+            background: #3B82F6;
+            color: white;
+        }
+        .btn-view:hover { background: #2563EB; transform: translateY(-2px); }
+        .btn-download {
+            background: #8B5CF6;
+            color: white;
+        }
+        .btn-download:hover { background: #7C3AED; transform: translateY(-2px); }
+        .page-header { padding: 30px 0 20px; }
+        .page-header .back-link { color: #6C3CE1; text-decoration: none; }
+        .page-header .back-link:hover { text-decoration: underline; }
+        .page-header h1 { font-size: 28px; color: #1A1A2E; margin-top: 8px; }
+        .page-header .subtitle { color: #6B7280; }
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 16px 0 24px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .stats-bar .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #6B7280;
+        }
+        .stats-bar .stat strong {
+            color: #1A1A2E;
+            font-size: 18px;
+        }
+        .badge {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-pending { background: #FEF3C7; color: #92400E; }
+        .badge-reviewing { background: #DBEAFE; color: #1E40AF; }
+        .badge-shortlisted { background: #D1FAE5; color: #065F46; }
+        .badge-interview { background: #E0E7FF; color: #3730A3; }
+        .badge-offered { background: #FCE7F3; color: #9D174D; }
+        .badge-hired { background: #10B981; color: white; }
+        .badge-rejected { background: #FEE2E2; color: #991B1B; }
+        .badge-withdrawn { background: #F3F4F6; color: #6B7280; }
+        .applications-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding-bottom: 40px;
+        }
+        .app-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        .app-card:hover { transform: translateY(-4px); }
+        .app-card .applicant-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .app-card .applicant-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1A1A2E;
+        }
+        .app-card .applicant-email {
+            color: #6B7280;
+            font-size: 14px;
+        }
+        .app-card .meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: #6B7280;
+            margin: 8px 0 12px;
+        }
+        .app-card .status-form {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .app-card .status-select {
+            padding: 8px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            background: white;
+            min-width: 180px;
+        }
+        .app-card .status-select:focus { outline: none; border-color: #6C3CE1; }
+        .app-card .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #F3F4F6;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .app-card .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .app-card .feedback-box {
+            padding: 12px 16px;
+            background: #F9FAFB;
+            border-radius: 10px;
+            margin-top: 12px;
+            border-left: 4px solid #6C3CE1;
+        }
+        .app-card .feedback-box .label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+        .app-card .feedback-box .text {
+            font-size: 14px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+        .app-card .feedback-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            margin-top: 8px;
+            resize: vertical;
+        }
+        .app-card .feedback-input:focus { outline: none; border-color: #6C3CE1; }
+        .no-apps { text-align: center; padding: 60px 20px; color: #6B7280; }
+        .no-apps .emoji { font-size: 48px; display: block; margin-bottom: 16px; }
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .alert-success { background: #D1FAE5; color: #065F46; }
+        .alert-error { background: #FEE2E2; color: #991B1B; }
+        .alert-warning { background: #FEF3C7; color: #92400E; }
+        .alert-info { background: #DBEAFE; color: #1E40AF; }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 768px) {
+            .app-card .applicant-info { flex-direction: column; gap: 8px; }
+            .app-card .status-form { flex-direction: column; }
+            .app-card .footer { flex-direction: column; align-items: stretch; }
+            .app-card .actions { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <span class="logo">🛡️</span>
+                <span class="brand-name">Talent Shield</span>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard/">Dashboard</a>
+                <a href="/jobs/">Jobs</a>
+                <a href="/my-jobs/">My Jobs</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <a href="{% url 'my_jobs' %}" class="back-link">← Back to My Jobs</a>
+            <h1>📋 Manage Applications</h1>
+            <div class="subtitle">{{ job.title }} at {{ job.company }}</div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat">
+                <span>📊 Total Applications:</span>
+                <strong>{{ applications|length }}</strong>
+            </div>
+            <div class="stat">
+                <span>⏳ Pending:</span>
+                <strong>{{ applications|length }}</strong>
+            </div>
+            <div class="stat">
+                <span>📅 Posted:</span>
+                <strong>{{ job.created_at|date:"M d, Y" }}</strong>
+            </div>
+        </div>
+
+        <!-- Applications List -->
+        <div class="applications-grid">
+            {% if applications %}
+                {% for app in applications %}
+                    <div class="app-card">
+                        <div class="applicant-info">
+                            <div>
+                                <div class="applicant-name">{{ app.applicant.username }}</div>
+                                <div class="applicant-email">📧 {{ app.applicant.email }}</div>
+                            </div>
+                            <span class="badge badge-{{ app.status }}">
+                                {% if app.status == 'pending' %}⏳ Pending Review
+                                {% elif app.status == 'reviewing' %}🔍 Under Review
+                                {% elif app.status == 'shortlisted' %}⭐ Shortlisted
+                                {% elif app.status == 'interview' %}📅 Interview Scheduled
+                                {% elif app.status == 'offered' %}🎯 Offer Extended
+                                {% elif app.status == 'hired' %}✅ Hired
+                                {% elif app.status == 'rejected' %}❌ Rejected
+                                {% elif app.status == 'withdrawn' %}🗑️ Withdrawn
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="meta">
+                            <span>📅 Applied: {{ app.applied_at|date:"M d, Y" }}</span>
+                            <span>🔄 Updated: {{ app.updated_at|date:"M d, Y" }}</span>
+                        </div>
+
+                        <!-- Update Status Form -->
+                        <form method="POST" class="status-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="application_id" value="{{ app.id }}">
+                            <select name="status" class="status-select">
+                                {% for key, value in status_choices %}
+                                    <option value="{{ key }}" {% if app.status == key %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                        </form>
+
+                        <!-- Feedback -->
+                        <div class="feedback-box">
+                            <div class="label">💬 Recruiter Feedback</div>
+                            <form method="POST" style="margin-top:8px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="application_id" value="{{ app.id }}">
+                                <textarea name="feedback" class="feedback-input" rows="2" placeholder="Add feedback for this candidate...">{{ app.recruiter_feedback|default:'' }}</textarea>
+                                <button type="submit" class="btn btn-outline" style="margin-top:8px;">Save Feedback</button>
+                            </form>
+                            {% if app.recruiter_feedback_date %}
+                                <div style="font-size:12px; color:#9CA3AF; margin-top:4px;">
+                                    Last updated: {{ app.recruiter_feedback_date|date:"M d, Y" }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="footer">
+                            <span style="font-size:14px; color:#6B7280;">
+                                🆔 Application #{{ app.id }}
+                            </span>
+                            <div class="actions">
+                                <!-- View CV Button -->
+                                <a href="{% url 'view_cv' app.id %}" class="btn btn-view" target="_blank">
+                                    👁️ View CV
+                                </a>
+                                <!-- Download CV Button -->
+                                <a href="{% url 'download_cv' app.id %}" class="btn btn-download">
+                                    📥 Download CV
+                                </a>
+                                {% if app.status == 'rejected' %}
+                                    <span style="color:#991B1B; font-size:14px; padding:8px 16px; background:#FEE2E2; border-radius:5px;">
+                                        ❌ Rejected
+                                    </span>
+                                {% elif app.status == 'hired' %}
+                                    <span style="color:#065F46; font-size:14px; padding:8px 16px; background:#D1FAE5; border-radius:5px;">
+                                        ✅ Hired
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-apps">
+                    <span class="emoji">📭</span>
+                    <h3>No Applications Yet</h3>
+                    <p>No one has applied to this job yet.</p>
+                    <a href="{% url 'my_jobs' %}" class="btn btn-primary" style="margin-top:16px;">Back to My Jobs</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

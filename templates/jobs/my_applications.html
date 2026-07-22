@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Applications - Talent Shield</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        .app { padding: 15px; border-bottom: 1px solid #eee; }
+        .app:last-child { border-bottom: none; }
+        .btn { display: inline-block; padding: 8px 16px; background: #6C3CE1; color: white; text-decoration: none; border-radius: 5px; font-size: 14px; border: none; cursor: pointer; }
+        .btn:hover { background: #5A2BC4; }
+        .btn-withdraw { background: #EF4444; color: white; }
+        .btn-withdraw:hover { background: #DC2626; }
+        .back { color: #6C3CE1; text-decoration: none; }
+        .badge { padding: 4px 12px; border-radius: 50px; font-size: 12px; }
+        .badge-pending { background: #FEF3C7; color: #92400E; }
+        .badge-reviewing { background: #DBEAFE; color: #1E40AF; }
+        .badge-shortlisted { background: #D1FAE5; color: #065F46; }
+        .badge-interview { background: #FCE7F3; color: #9D174D; }
+        .badge-offered { background: #D1FAE5; color: #065F46; }
+        .badge-hired { background: #D1FAE5; color: #065F46; font-weight: 700; }
+        .badge-rejected { background: #FEE2E2; color: #DC2626; }
+        .badge-withdrawn { background: #E5E7EB; color: #6B7280; }
+        .feedback-box { margin-top: 8px; padding: 10px; background: #F0FDF4; border-radius: 5px; border-left: 3px solid #10B981; }
+        .feedback-box .date { font-size: 12px; color: #6B7280; display: block; margin-top: 4px; }
+        .no-apps { text-align: center; padding: 40px; color: #6B7280; }
+        .meta { color: #6B7280; font-size: 14px; margin: 4px 0; }
+        .status-meta { margin: 8px 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .alert-success { background: #D1FAE5; color: #065F46; }
+        .alert-error { background: #FEE2E2; color: #DC2626; }
+        .alert-warning { background: #FEF3C7; color: #92400E; }
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .app { padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/dashboard/" class="back">← Back to Dashboard</a>
+        <h1>📩 My Applications</h1>
+        <p style="color:#6B7280; margin-bottom:20px;">Track your job applications and recruiter feedback</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% if applications %}
+            {% for app in applications %}
+                <div class="app">
+                    <h2>{{ app.job.title }}</h2>
+                    <p style="color:#6C3CE1; font-weight:600;">{{ app.job.company }}</p>
+                    <div class="meta">
+                        <span>📍 {{ app.job.location }}</span>
+                        <span>|</span>
+                        <span>📅 Applied: {{ app.applied_at|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="status-meta">
+                        Status: <span class="badge badge-{{ app.status }}">{{ app.get_status_display }}</span>
+                    </div>
+                    
+                    {% if app.recruiter_feedback %}
+                        <div class="feedback-box">
+                            <strong>📝 Recruiter Feedback:</strong>
+                            <p style="margin-top:4px; color:#374151;">{{ app.recruiter_feedback }}</p>
+                            <span class="date">Received: {{ app.recruiter_feedback_date|date:"M d, Y H:i" }}</span>
+                        </div>
+                    {% else %}
+                        <div style="margin-top:8px; padding:8px 12px; background:#F9FAFB; border-radius:5px; color:#6B7280; font-size:14px;">
+                            ⏳ No feedback yet. Your application is being reviewed.
+                        </div>
+                    {% endif %}
+                    
+                    <div class="actions">
+                        <a href="{% url 'job_detail' app.job.id %}" class="btn">View Job →</a>
+                        
+                        {% if app.status != 'withdrawn' and app.status != 'hired' and app.status != 'rejected' %}
+                            <a href="{% url 'withdraw_application' app.id %}" 
+                               class="btn btn-withdraw"
+                               onclick="return confirm('Are you sure you want to withdraw this application?');">
+                                🗑️ Withdraw
+                            </a>
+                        {% endif %}
+                        
+                        {% if app.status == 'withdrawn' %}
+                            <span style="color:#6B7280; font-size:14px; padding:8px 16px; background:#F3F4F6; border-radius:5px;">
+                                ✅ Withdrawn
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-apps">
+                <h3>No Applications Yet</h3>
+                <p>Start applying to jobs to find your dream cybersecurity role.</p>
+                <a href="/jobs/" class="btn" style="margin-top:16px;">Browse Jobs →</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

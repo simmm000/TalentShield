@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Dashboard - Talent Shield</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F3F4F6; }
+        .navbar {
+            background: white;
+            padding: 16px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .nav-brand .logo { font-size: 28px; }
+        .nav-brand .brand-name {
+            background: linear-gradient(135deg, #6C3CE1, #00D4FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-links { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+        .nav-links a { text-decoration: none; color: #1A1A2E; font-weight: 500; }
+        .nav-links a:hover { color: #6C3CE1; }
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6C3CE1, #5A2BC4);
+            color: white;
+            box-shadow: 0 4px 20px rgba(108, 60, 225, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108, 60, 225, 0.4); }
+        .btn-outline {
+            background: transparent;
+            color: #1A1A2E;
+            border: 2px solid #E5E7EB;
+        }
+        .btn-outline:hover { border-color: #6C3CE1; color: #6C3CE1; }
+        .dashboard { padding: 40px 0; }
+        .dashboard-header { margin-bottom: 30px; }
+        .dashboard-header h1 { font-size: 32px; color: #1A1A2E; }
+        .dashboard-header p { color: #6B7280; }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+        
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        .card-link:hover {
+            transform: translateY(-5px);
+        }
+        .card-link .card {
+            height: 100%;
+            transition: box-shadow 0.3s ease;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .card-link:hover .card {
+            box-shadow: 0 8px 30px rgba(108, 60, 225, 0.15);
+        }
+        .card h3 { margin-bottom: 15px; color: #1A1A2E; }
+        .card-footer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #F3F4F6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-footer .arrow {
+            color: #6C3CE1;
+            font-weight: 600;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        .status-item:last-child { border-bottom: none; }
+        .status-badge { font-weight: 600; }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #F9FAFB;
+            border-radius: 10px;
+        }
+        .stat-number { font-size: 24px; font-weight: 800; color: #6C3CE1; }
+        .stat-label { font-size: 11px; color: #6B7280; }
+        .stat-boost {
+            background: #F0FDF4;
+            border: 2px solid #10B981;
+        }
+        .stat-boost .stat-number { color: #10B981; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #E5E7EB;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .form-group input[type="file"]:hover { border-color: #6C3CE1; }
+        .form-group input[type="file"]::file-selector-button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #6C3CE1;
+            color: white;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .form-group input[type="file"]::file-selector-button:hover {
+            background: #5A2BC4;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        .alert-success { background: #D1FAE5; color: #065F46; }
+        .alert-error { background: #FEE2E2; color: #DC2626; }
+        .alert-info { background: #DBEAFE; color: #1E40AF; }
+        .alert-warning { background: #FEF3C7; color: #92400E; }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-low { background: #D1FAE5; color: #065F46; }
+        .badge-medium { background: #FEF3C7; color: #92400E; }
+        .badge-high { background: #FEE2E2; color: #DC2626; }
+        
+        .challenge-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        .challenge-tags .tag {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .progress-bar {
+            width: 100%;
+            background: #E5E7EB;
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            width: 100%;
+            background: #6C3CE1;
+            border-radius: 10px;
+            height: 8px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .clickable {
+            cursor: pointer;
+        }
+        .clickable:hover {
+            color: #5A2BC4;
+        }
+        
+        .cv-uploaded-box {
+            background: #F0FDF4;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #A7F3D0;
+            margin-bottom: 15px;
+        }
+        .cv-uploaded-box .file-name {
+            color: #065F46;
+            font-weight: 600;
+        }
+        .cv-uploaded-box .file-detail {
+            font-size: 13px;
+            color: #6B7280;
+        }
+        
+        .fraud-factor {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            background: #FEF2F2;
+            border-left: 4px solid #EF4444;
+            border-radius: 6px;
+        }
+        .fraud-factor .factor-title {
+            font-weight: 600;
+            color: #DC2626;
+            font-size: 14px;
+        }
+        .fraud-factor .factor-impact {
+            font-size: 12px;
+            color: #DC2626;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .stat-grid { grid-template-columns: 1fr 1fr; }
+            .nav-links { gap: 12px; }
+        }
+        @media (max-width: 480px) {
+            .stat-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <span class="logo">🛡️</span>
+                <span class="brand-name">Talent Shield</span>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard/">Dashboard</a>
+                <a href="/profile/">Profile</a>
+                <a href="/challenges/">Challenges</a>
+                <a href="/jobs/">Jobs</a>
+                <a href="/leaderboard/">Leaderboard</a>
+                <a href="/gamification/skill-recognition/" style="font-weight:700; color:#6C3CE1;">🏅 Skills</a>
+                <a href="/job-recommendations/" style="font-weight:700; color:#6C3CE1;">🎯 Recommendations</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Welcome, {{ user.username }}! 👋</h1>
+                <p>Your gateway to secure cybersecurity recruitment</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Card 1: Profile Status -->
+                <a href="/profile/" class="card-link">
+                    <div class="card">
+                        <h3>📋 Profile Status</h3>
+                        <div id="profile-status">
+                            <div class="status-item">
+                                <span>CV Uploaded</span>
+                                <span class="status-badge" id="cv-status">
+                                    {% if user.candidate_profile.cv_file %}
+                                        ✅ Uploaded
+                                    {% else %}
+                                        ❌ Not Uploaded
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="status-item">
+                                <span>Skills Extracted</span>
+                                <span class="status-badge" id="skill-status">
+                                    {% if user.candidate_profile.skills %}
+                                        ✅ {{ user.candidate_profile.skills|slice:":3"|join:", " }}{% if user.candidate_profile.skills|length > 3 %}...{% endif %}
+                                    {% else %}
+                                        ⏳ Pending
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="status-item">
+                                <span>Fraud Detection</span>
+                                <span class="status-badge" id="fraud-status">
+                                    {% if fraud_score != 'N/A' %}
+                                        {{ fraud_score }} ({{ fraud_risk }})
+                                    {% else %}
+                                        ⏳ Pending
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="arrow">View Profile →</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card 2: CV Upload / View / Update -->
+                <div class="card">
+                    <h3>📄 Your CV</h3>
+                    <p style="color:#6B7280; font-size:14px; margin-bottom:15px;">
+                        Upload or update your CV for AI-based analysis
+                    </p>
+                    
+                    {% if user.candidate_profile.cv_file %}
+                        <div class="cv-uploaded-box">
+                            <p class="file-name">✅ CV Uploaded</p>
+                            <p class="file-detail">
+                                File: {{ user.candidate_profile.cv_file.name|slice:"8:" }}
+                            </p>
+                            <p class="file-detail">
+                                Uploaded: {{ user.candidate_profile.updated_at|date:"M d, Y" }}
+                            </p>
+                            <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                                <a href="{{ user.candidate_profile.cv_file.url }}" target="_blank" class="btn btn-primary" style="padding:8px 16px; font-size:13px;">
+                                    👁️ View CV
+                                </a>
+                                <button onclick="document.getElementById('cv-file').click();" class="btn btn-outline" style="padding:8px 16px; font-size:13px;">
+                                    📤 Update CV
+                                </button>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p style="color:#6B7280; font-size:14px; margin-bottom:15px;">
+                            No CV uploaded yet.
+                        </p>
+                    {% endif %}
+                    
+                    <form id="cv-upload-form" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group" style="display:none;">
+                            <input type="file" id="cv-file" name="cv_file" accept=".pdf,.docx" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="upload-btn" style="width:100%; display:none;">
+                            🔍 Analyze CV
+                        </button>
+                    </form>
+                    
+                    <div id="upload-progress" style="display:none; margin-top:15px;">
+                        <p style="font-size:14px;">⏳ Processing your CV...</p>
+                        <div class="progress-bar">
+                            <div class="fill"></div>
+                        </div>
+                    </div>
+                    <div id="cv-result"></div>
+                    
+                    {% if not user.candidate_profile.cv_file %}
+                        <div class="card-footer" id="upload-trigger" style="cursor:pointer;">
+                            <span class="arrow clickable">📤 Upload CV →</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Card 3: Your Stats -->
+                <a href="/gamification/profile/" class="card-link">
+                    <div class="card">
+                        <h3>📊 Your Stats</h3>
+                        <div class="stat-grid">
+                            <div class="stat-item">
+                                <span class="stat-number" id="challenges-completed">0</span>
+                                <span class="stat-label">Challenges</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" id="points-earned">0</span>
+                                <span class="stat-label">Points</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" id="level">1</span>
+                                <span class="stat-label">Level</span>
+                            </div>
+                            <div class="stat-item stat-boost">
+                                <span class="stat-number" id="cv-boost" style="color:#10B981;">0%</span>
+                                <span class="stat-label">🚀 CV Boost</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="arrow">View All Stats →</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card 4: Challenges -->
+                <a href="/challenges/" class="card-link">
+                    <div class="card">
+                        <h3>🎯 Cybersecurity Challenges</h3>
+                        <p style="color:#6B7280; font-size:14px; margin-bottom:10px;">
+                            Test your skills and earn points & badges!
+                        </p>
+                        <div class="challenge-tags">
+                            <span class="tag" style="background:#D1FAE5; color:#065F46;">Beginner</span>
+                            <span class="tag" style="background:#FEF3C7; color:#92400E;">Intermediate</span>
+                            <span class="tag" style="background:#FEE2E2; color:#DC2626;">Advanced</span>
+                            <span class="tag" style="background:#FCE7F3; color:#9D174D;">Expert</span>
+                        </div>
+                        <div style="display:flex; gap:20px; margin-top:10px; font-size:14px; color:#6B7280;">
+                            <span>⭐ Earn Points</span>
+                            <span>🏆 Get Badges</span>
+                            <span>📊 Leaderboard</span>
+                        </div>
+                        <div class="card-footer">
+                            <span class="arrow">Start Challenges →</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===== UPLOAD CV ARROW CLICK =====
+            var uploadTrigger = document.getElementById('upload-trigger');
+            var fileInput = document.getElementById('cv-file');
+            
+            if (uploadTrigger) {
+                uploadTrigger.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (fileInput) {
+                        fileInput.click();
+                    }
+                });
+            }
+
+            // ===== WHEN FILE SELECTED, AUTO SUBMIT =====
+            if (fileInput) {
+                fileInput.addEventListener('change', function() {
+                    if (this.files && this.files.length > 0) {
+                        var result = document.getElementById('cv-result');
+                        var fileName = this.files[0].name;
+                        var fileSize = (this.files[0].size / 1024).toFixed(1);
+                        result.innerHTML = '<div class="alert alert-info">📄 Selected: ' + fileName + ' (' + fileSize + ' KB)</div>';
+                        document.getElementById('upload-btn').click();
+                    }
+                });
+            }
+
+            // ===== PROFILE STATUS =====
+            fetch('/api/profile/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.skills && data.skills.length > 0) {
+                        document.getElementById('cv-status').textContent = '✅ Uploaded';
+                        document.getElementById('skill-status').textContent = '✅ ' + data.skills.slice(0, 3).join(', ') + (data.skills.length > 3 ? '...' : '');
+                    }
+                    if (data.cv_file) {
+                        document.getElementById('cv-status').textContent = '✅ Uploaded';
+                    }
+                    if (data.gamification_profile) {
+                        document.getElementById('cv-boost').textContent = data.gamification_profile.cv_boost_percentage + '%';
+                        document.getElementById('challenges-completed').textContent = data.gamification_profile.challenges_passed || 0;
+                        document.getElementById('points-earned').textContent = data.gamification_profile.total_points || 0;
+                        document.getElementById('level').textContent = data.gamification_profile.level || 1;
+                    }
+                })
+                .catch(() => {});
+
+            // ===== CV UPLOAD FORM =====
+            var form = document.getElementById('cv-upload-form');
+            var uploadBtn = document.getElementById('upload-btn');
+            var progress = document.getElementById('upload-progress');
+            var result = document.getElementById('cv-result');
+
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    var formData = new FormData(this);
+                    var btn = document.getElementById('upload-btn');
+                    var progress = document.getElementById('upload-progress');
+                    var result = document.getElementById('cv-result');
+                    
+                    btn.disabled = true;
+                    btn.textContent = '⏳ Processing...';
+                    progress.style.display = 'block';
+                    result.innerHTML = '';
+
+                    fetch('/api/cv/upload-analyze/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err; });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        progress.style.display = 'none';
+                        btn.disabled = false;
+                        btn.textContent = '🔍 Analyze CV';
+
+                        if (data.success) {
+                            document.getElementById('cv-status').textContent = '✅ Uploaded';
+                            document.getElementById('skill-status').textContent = '✅ ' + (data.parsed_data.skills || []).slice(0, 3).join(', ') || 'None';
+                            document.getElementById('fraud-status').textContent = data.fraud_analysis.fraud_score + ' (' + data.fraud_analysis.risk_level + ')';
+
+                            var riskClass = '';
+                            if (data.fraud_analysis.risk_level === 'Low') riskClass = 'badge-low';
+                            else if (data.fraud_analysis.risk_level === 'Medium') riskClass = 'badge-medium';
+                            else riskClass = 'badge-high';
+
+                            var duplicateHtml = '';
+                            if (data.fraud_analysis.duplicate_detected) {
+                                duplicateHtml = `
+                                    <div class="alert alert-warning" style="margin-top:10px; background:#FEF3C7; color:#92400E; border-left:4px solid #F59E0B;">
+                                        ⚠️ <strong>Warning:</strong> This CV has already been uploaded by another candidate!
+                                    </div>
+                                `;
+                            }
+
+                            var fraudFactorsHtml = '';
+                            if (data.fraud_analysis.fraud_factors && data.fraud_analysis.fraud_factors.length > 0) {
+                                fraudFactorsHtml = `
+                                    <div style="margin:12px 0; padding:15px; background:#FEF2F2; border-radius:10px; border:1px solid #FECACA;">
+                                        <h4 style="color:#DC2626; margin-bottom:10px;">🚨 Fraud Detection Results:</h4>
+                                        ${data.fraud_analysis.fraud_factors.map(f => `
+                                            <div class="fraud-factor">
+                                                <div class="factor-title">${f.factor}</div>
+                                                <div class="factor-impact">Impact: ${f.impact || '+20%'}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                `;
+                            }
+
+                            var cvScoreHtml = '';
+                            if (data.cv_score) {
+                                var scoreClass = '';
+                                if (data.cv_score.score >= 80) scoreClass = 'badge-low';
+                                else if (data.cv_score.score >= 60) scoreClass = 'badge-medium';
+                                else scoreClass = 'badge-high';
+
+                                cvScoreHtml = `
+                                    <div style="margin:12px 0; padding:15px; background:#F0FDF4; border-radius:10px; border:1px solid #A7F3D0;">
+                                        <h4 style="color:#065F46; margin-bottom:10px;">📊 CV Quality Score: ${data.cv_score.emoji} ${data.cv_score.quality}</h4>
+                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                            <div>
+                                                <strong>Score:</strong>
+                                                <span style="font-size:28px; font-weight:800; color:#6C3CE1;">${data.cv_score.score}%</span>
+                                            </div>
+                                            <div>
+                                                <strong>Quality:</strong>
+                                                <span class="badge ${scoreClass}">${data.cv_score.quality}</span>
+                                            </div>
+                                        </div>
+                                        <p style="font-size:14px; color:#6B7280; margin-top:8px;">${data.cv_score.description}</p>
+                                        <div style="margin-top:8px;">
+                                            ${data.cv_score.reasons.map(r => `<div style="font-size:13px; color:#374151; padding:2px 0;">${r}</div>`).join('')}
+                                        </div>
+                                        ${data.cv_score.suggestions && data.cv_score.suggestions.length > 0 ? `
+                                            <div style="margin-top:8px;">
+                                                <strong style="font-size:13px; color:#065F46;">💡 Suggestions:</strong>
+                                                ${data.cv_score.suggestions.map(s => `<div style="font-size:13px; color:#6B7280; padding:2px 0;">• ${s}</div>`).join('')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }
+
+                            var skillsList = (data.parsed_data.skills || []).join(', ') || 'None detected';
+                            var certsList = (data.parsed_data.certifications || []).map(c => c.name).join(', ') || 'None detected';
+                            var expYears = data.parsed_data.experience_years || 0;
+
+                            result.innerHTML = `
+                                <div class="alert alert-success">
+                                    <h4 style="margin-bottom:10px;">✅ CV Analysis Complete</h4>
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                        <div>
+                                            <strong>Fraud Detection:</strong>
+                                            <span class="badge ${riskClass}">${data.fraud_analysis.fraud_score}</span>
+                                        </div>
+                                        <div>
+                                            <strong>Risk Level:</strong>
+                                            <span class="badge ${riskClass}">${data.fraud_analysis.risk_level}</span>
+                                        </div>
+                                    </div>
+                                    ${duplicateHtml}
+                                    ${fraudFactorsHtml}
+                                    ${cvScoreHtml}
+                                    <hr style="margin:10px 0;">
+                                    <div><strong>Skills:</strong> ${skillsList}</div>
+                                    <div><strong>Certifications:</strong> ${certsList}</div>
+                                    <div><strong>Experience:</strong> ${expYears} years</div>
+                                </div>
+                            `;
+                        } else {
+                            result.innerHTML = `<div class="alert alert-error">❌ Error: ${data.error || 'Something went wrong'}</div>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        progress.style.display = 'none';
+                        btn.disabled = false;
+                        btn.textContent = '🔍 Analyze CV';
+                        result.innerHTML = `<div class="alert alert-error">❌ Error: ${error.error || error.message || 'Please try again'}</div>`;
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

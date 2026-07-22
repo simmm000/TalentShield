@@ -1,0 +1,99 @@
+name: sims subedi
+email: sims@gmail.com
+phone: 9841234567
+linkedin: linkedin.com/in/sims-subedi
+location: kathmandu, nepal
+
+professional summary
+highly motivated and detail-oriented cybersecurity graduate with 2+ years of experience in network security, vulnerability assessment, and incident response. proficient in python, linux, network security, and security tools like wireshark, nmap, and metasploit. certified ethical hacker (ceh) and comptia security+ certified. passionate about protecting systems, detecting threats, and securing digital infrastructures.
+
+education
+bsc cybersecurity
+kathmandu university, nepal
+2021 - 2024 (expected)
+- cgpa: 3.8/4.0
+- relevant coursework: network security, cryptography, ethical hacking, digital forensics, web security, risk management, security operations
+
+technical skills
+programming languages: python, java, javascript, c++
+operating systems: linux (ubuntu, kali), windows, macos
+networking: tcp/ip, dns, dhcp, vpn, firewalls, routing, switching
+security tools: wireshark, nmap, metasploit, burp suite, nessus, openvas, snort, suricata, splunk, siem, kali linux
+security concepts: penetration testing, vulnerability assessment, incident response, threat analysis, risk assessment, compliance (gdpr, hipaa, pci dss), security auditing, forensics, malware analysis, phishing detection, zero trust, security architecture
+cloud security: aws, azure, google cloud, iam, security groups, cloudtrail
+
+certifications
+ceh - certified ethical hacker (ec-council) | 2024
+comptia security+ | 2024
+aws certified security - specialty (in progress)
+iso 27001 lead auditor (in progress)
+
+work experience
+security intern
+techguard security solutions | kathmandu, nepal
+june 2023 - december 2023
+- monitored security alerts using siem tools (splunk) and investigated potential threats
+- conducted vulnerability scans using nessus and openvas, identifying 50+ vulnerabilities
+- assisted in incident response and remediation of security incidents
+- performed penetration testing on internal networks using nmap, metasploit, and burp suite
+- analyzed network traffic using wireshark to detect malicious activities
+- implemented firewall rules and security policies to protect corporate assets
+- created security reports and presented findings to senior management
+
+it security analyst (intern)
+nepal cyber security center | kathmandu, nepal
+january 2024 - may 2024
+- conducted risk assessments for government agencies and private organizations
+- performed security audits and compliance checks (iso 27001, pci dss)
+- developed security awareness training materials for employees
+- responded to cybersecurity incidents and provided threat intelligence
+- analyzed phishing emails and malware samples using sandbox environments
+- supported in deploying security solutions (ids/ips, firewalls, edr)
+- assisted in securing web applications using owasp guidelines
+
+projects
+network security monitoring tool
+- developed a python-based network monitoring tool using scapy to detect arp spoofing, dos attacks, and network anomalies
+- integrated wireshark for packet analysis and snort for intrusion detection
+- created real-time alerts for suspicious network activities
+
+phishing detection system
+- built a machine learning model using python to detect phishing urls and emails
+- achieved 95% accuracy in detecting phishing attacks using natural language processing (nlp)
+- deployed the system as a web application using django
+
+vulnerability management dashboard
+- designed a dashboard using django to track and manage vulnerabilities
+- integrated with nessus and openvas apis for automated scanning
+- generated reports and risk scores for remediation
+
+security automation scripts
+- created python and bash scripts for automating security tasks such as log analysis, system hardening, and malware scanning
+- automated vulnerability patching using ansible and python
+
+internships & volunteer
+security operations center (soc) intern
+nepal telecom authority | kathmandu, nepal
+august 2024 - october 2024
+- monitored network traffic and responded to security incidents
+- investigated alerts using siem and prepared incident reports
+- assisted in threat hunting and detection of apt attacks
+
+volunteer security analyst
+women in cybersecurity nepal
+april 2023 - march 2024
+- led workshops on cybersecurity awareness and safe browsing
+- mentored students on ethical hacking and network security
+
+achievements
+- won first place in national cybersecurity hackathon 2024
+- recognized as "top performer" at techguard security solutions
+- certified ethical hacker (ceh) and comptia security+
+- published research paper: "ai-based phishing detection system" in nepal cyber security journal
+- completed 50+ cybersecurity courses on coursera, udemy, cybrary, and pluralsight
+
+languages
+- english (fluent)
+- nepali (native)
+- hindi (fluent)
+

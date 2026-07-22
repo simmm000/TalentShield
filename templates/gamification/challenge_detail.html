@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge - Talent Shield</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F3F4F6; }
+        .navbar {
+            background: white;
+            padding: 16px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+        .navbar .container { max-width: 1200px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .nav-brand .logo { font-size: 28px; }
+        .nav-brand .brand-name {
+            background: linear-gradient(135deg, #6C3CE1, #00D4FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-links { display: flex; align-items: center; gap: 24px; }
+        .nav-links a { text-decoration: none; color: #1A1A2E; font-weight: 500; }
+        .nav-links a:hover { color: #6C3CE1; }
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6C3CE1, #5A2BC4);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-success {
+            background: #10B981;
+            color: white;
+        }
+        .btn-success:hover { transform: translateY(-2px); }
+        .btn-outline {
+            background: transparent;
+            color: #1A1A2E;
+            border: 2px solid #E5E7EB;
+        }
+        .btn-outline:hover { border-color: #6C3CE1; color: #6C3CE1; }
+        .btn-warning {
+            background: #F59E0B;
+            color: white;
+        }
+        .btn-warning:hover { transform: translateY(-2px); }
+        .btn-danger {
+            background: #EF4444;
+            color: white;
+        }
+        .btn-danger:hover { transform: translateY(-2px); }
+        .page-header { padding: 30px 0 20px; }
+        .page-header h1 { font-size: 28px; color: #1A1A2E; }
+        .page-header .meta {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .difficulty {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .difficulty-beginner { background: #D1FAE5; color: #065F46; }
+        .difficulty-intermediate { background: #FEF3C7; color: #92400E; }
+        .difficulty-advanced { background: #FEE2E2; color: #DC2626; }
+        .difficulty-expert { background: #FCE7F3; color: #9D174D; }
+        .back-link { color: #6C3CE1; text-decoration: none; display: inline-block; margin-bottom: 10px; }
+        .back-link:hover { text-decoration: underline; }
+        .challenge-box {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+        .challenge-box .question { font-size: 18px; line-height: 1.8; color: #1A1A2E; }
+        .challenge-box .scenario {
+            background: #F9FAFB;
+            padding: 16px;
+            border-radius: 10px;
+            margin: 16px 0;
+            border-left: 4px solid #6C3CE1;
+            color: #374151;
+        }
+        .challenge-box .hint {
+            background: #FEF3C7;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin: 12px 0;
+            color: #92400E;
+            font-size: 14px;
+        }
+        .timer {
+            font-size: 24px;
+            font-weight: 700;
+            color: #6C3CE1;
+            text-align: center;
+            padding: 12px;
+            background: #F9FAFB;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+        .timer.warning { color: #EF4444; animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .options { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+        .options label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        .options label:hover { border-color: #6C3CE1; }
+        .options input[type="radio"] { width: 18px; height: 18px; }
+        .text-answer textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            min-height: 100px;
+            resize: vertical;
+        }
+        .text-answer textarea:focus { outline: none; border-color: #6C3CE1; }
+        .result {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 16px;
+        }
+        .result-success { background: #D1FAE5; color: #065F46; }
+        .result-fail { background: #FEE2E2; color: #DC2626; }
+        .result-pending { background: #FEF3C7; color: #92400E; }
+        .submit-area { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+        .attempts-info {
+            background: #F3F4F6;
+            padding: 8px 16px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #6B7280;
+        }
+        .retry-area {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px dashed #E5E7EB;
+        }
+        @media (max-width: 768px) {
+            .challenge-box { padding: 20px; }
+            .submit-area { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container" style="max-width:1200px;">
+            <div class="nav-brand">
+                <span class="logo">🛡️</span>
+                <span class="brand-name">Talent Shield</span>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard/">Dashboard</a>
+                <a href="/challenges/">Challenges</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <a href="/challenges/" class="back-link">← Back to Challenges</a>
+            <h1>{{ challenge.title }}</h1>
+            <div class="meta">
+                <span class="difficulty difficulty-{{ challenge.difficulty }}">
+                    {{ challenge.get_difficulty_display }}
+                </span>
+                <span style="color:#6B7280;">⭐ {{ challenge.points }} points</span>
+                <span style="color:#6B7280;">⏱️ {{ challenge.time_limit_seconds }} seconds</span>
+                <span style="color:#6B7280;">📂 {{ challenge.get_category_display }}</span>
+            </div>
+        </div>
+
+        <div class="challenge-box">
+            <div class="timer" id="timer">⏱️ {{ challenge.time_limit_seconds }}s</div>
+
+            {% if challenge.scenario %}
+                <div class="scenario">
+                    <strong>📖 Scenario:</strong>
+                    <p style="margin-top:4px;">{{ challenge.scenario }}</p>
+                </div>
+            {% endif %}
+
+            <div class="question">
+                <strong>Question:</strong>
+                <p style="margin-top:8px;">{{ challenge.question }}</p>
+            </div>
+
+            {% if challenge.hints %}
+                <div class="hint">
+                    💡 <strong>Hint:</strong> {{ challenge.hints.0 }}
+                </div>
+            {% endif %}
+
+            <!-- Answer Form -->
+            <form id="challenge-form">
+                {% csrf_token %}
+                
+                {% if challenge.answer_type == 'multiple_choice' %}
+                    <div class="options" id="options-container">
+                        {% for option in challenge.options %}
+                            <label>
+                                <input type="radio" name="answer" value="{{ option }}">
+                                {{ option }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-answer">
+                        <label for="answer"><strong>Your Answer:</strong></label>
+                        <textarea id="answer" name="answer" placeholder="Type your answer here..."></textarea>
+                    </div>
+                {% endif %}
+
+                <div class="submit-area">
+                    <button type="submit" class="btn btn-primary" id="submit-btn">Submit Answer</button>
+                    <button type="button" class="btn btn-outline" onclick="window.location.href='/challenges/'">Cancel</button>
+                </div>
+            </form>
+
+            <!-- Attempts Info -->
+            <div class="attempts-info" id="attempts-info">
+                🔄 Attempts: <span id="attempt-count">0</span>
+            </div>
+
+            <!-- Result Area -->
+            <div id="result-area"></div>
+
+            <!-- Retry Area (Hidden by default) -->
+            <div class="retry-area" id="retry-area" style="display:none;">
+                <button type="button" class="btn btn-warning" id="retry-btn" style="width:100%;">
+                    🔄 Retry Challenge
+                </button>
+                <p style="font-size:12px; color:#6B7280; margin-top:8px; text-align:center;">
+                    Note: You will lose your previous attempt. Try again to earn points!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // Challenge Variables
+        // ============================================
+        let timeLeft = {{ challenge.time_limit_seconds }};
+        let timerInterval;
+        let isSubmitted = false;
+        let attempts = 0;
+        let isCorrect = false;
+        let canRetry = false;
+        const maxAttempts = 3;
+
+        const timerElement = document.getElementById('timer');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultArea = document.getElementById('result-area');
+        const retryArea = document.getElementById('retry-area');
+        const retryBtn = document.getElementById('retry-btn');
+        const attemptCountSpan = document.getElementById('attempt-count');
+
+        // ============================================
+        // Start Timer
+        // ============================================
+        function startTimer() {
+            timerInterval = setInterval(function() {
+                timeLeft--;
+                timerElement.textContent = '⏱️ ' + timeLeft + 's';
+                
+                if (timeLeft <= 10) {
+                    timerElement.classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerElement.textContent = '⏱️ Time\'s Up!';
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Time Expired';
+                    showResult('fail', '⏰ Time\'s Up!', 'You ran out of time.', false);
+                }
+            }, 1000);
+        }
+
+        startTimer();
+
+        // ============================================
+        // Show Result
+        // ============================================
+        function showResult(type, title, message, correct) {
+            let html = '';
+            if (type === 'success') {
+                html = `
+                    <div class="result result-success">
+                        <h3>✅ ${title}</h3>
+                        <p>${message}</p>
+                        <p>Score: ${score}/100</p>
+                        <a href="/challenges/" class="btn btn-primary" style="margin-top:10px;">Next Challenge →</a>
+                    </div>
+                `;
+                isCorrect = true;
+                // Hide retry for correct answers
+                retryArea.style.display = 'none';
+                // Disable form
+                disableForm();
+            } else {
+                html = `
+                    <div class="result result-fail">
+                        <h3>❌ ${title}</h3>
+                        <p>${message}</p>
+                    </div>
+                `;
+                
+                // Show retry if attempts < maxAttempts
+                if (attempts < maxAttempts && !isCorrect) {
+                    retryArea.style.display = 'block';
+                    canRetry = true;
+                    retryBtn.textContent = `🔄 Retry Challenge (${maxAttempts - attempts} attempts left)`;
+                } else if (attempts >= maxAttempts) {
+                    retryArea.style.display = 'block';
+                    retryBtn.textContent = '❌ Max Attempts Reached';
+                    retryBtn.disabled = true;
+                    retryBtn.style.opacity = '0.5';
+                }
+            }
+            resultArea.innerHTML = html;
+        }
+
+        // ============================================
+        // Disable Form
+        // ============================================
+        function disableForm() {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Completed';
+            document.querySelectorAll('input, textarea').forEach(el => el.disabled = true);
+        }
+
+        // ============================================
+        // Enable Form (for Retry)
+        // ============================================
+        function enableForm() {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Answer';
+            document.querySelectorAll('input, textarea').forEach(el => el.disabled = false);
+            
+            // Reset form
+            document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+            const textarea = document.getElementById('answer');
+            if (textarea) textarea.value = '';
+            
+            resultArea.innerHTML = '';
+            retryArea.style.display = 'none';
+            
+            // Reset timer
+            clearInterval(timerInterval);
+            timeLeft = {{ challenge.time_limit_seconds }};
+            timerElement.textContent = '⏱️ ' + timeLeft + 's';
+            timerElement.classList.remove('warning');
+            startTimer();
+            
+            isSubmitted = false;
+        }
+
+        // ============================================
+        // Form Submission
+        // ============================================
+        document.getElementById('challenge-form').onsubmit = function(e) {
+            e.preventDefault();
+            
+            if (isSubmitted) return;
+            if (isCorrect) {
+                alert('You already answered this correctly!');
+                return;
+            }
+            
+            let answer;
+            {% if challenge.answer_type == 'multiple_choice' %}
+                const selected = document.querySelector('input[name="answer"]:checked');
+                if (!selected) {
+                    alert('Please select an answer!');
+                    return;
+                }
+                answer = selected.value;
+            {% else %}
+                answer = document.getElementById('answer').value.trim();
+                if (!answer) {
+                    alert('Please enter your answer!');
+                    return;
+                }
+            {% endif %}
+            
+            const timeTaken = {{ challenge.time_limit_seconds }} - timeLeft;
+            attempts++;
+            attemptCountSpan.textContent = attempts;
+            
+            isSubmitted = true;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            const submitUrl = "{% url 'submit_challenge' challenge.id %}";
+            
+            fetch(submitUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    answer: answer,
+                    time_taken: timeTaken
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(timerInterval);
+                score = data.score || 0;
+                
+                if (data.is_correct) {
+                    showResult('success', 'Correct! 🎉', `You earned <strong>{{ challenge.points }}</strong> points!`, true);
+                    submitBtn.textContent = '✅ Correct!';
+                } else {
+                    showResult('fail', 'Incorrect', data.message, false);
+                    submitBtn.textContent = '❌ Incorrect';
+                    isSubmitted = false;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Answer';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                isSubmitted = false;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Answer';
+                resultArea.innerHTML = `
+                    <div class="result result-fail">
+                        <h3>❌ Error</h3>
+                        <p>Something went wrong. Please try again.</p>
+                    </div>
+                `;
+            });
+        };
+
+        // ============================================
+        // Retry Function
+        // ============================================
+        retryBtn.addEventListener('click', function() {
+            if (isCorrect) {
+                alert('You already passed this challenge!');
+                return;
+            }
+            
+            if (attempts >= maxAttempts) {
+                alert('Maximum attempts reached!');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to retry this challenge? You will lose your previous attempt.')) {
+                enableForm();
+                isCorrect = false;
+                canRetry = false;
+                retryArea.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Answer';
+            }
+        });
+
+        // ============================================
+        // Handle Time Expiry
+        // ============================================
+        function handleTimeExpiry() {
+            if (!isCorrect && !isSubmitted) {
+                showResult('fail', '⏰ Time\'s Up!', 'You ran out of time. Try again.', false);
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Time Expired';
+                isSubmitted = true;
+            }
+        }
+
+        // Override timer expiry
+        const originalTimer = timerInterval;
+        clearInterval(originalTimer);
+        timerInterval = setInterval(function() {
+            timeLeft--;
+            timerElement.textContent = '⏱️ ' + timeLeft + 's';
+            
+            if (timeLeft <= 10) {
+                timerElement.classList.add('warning');
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                timerElement.textContent = '⏱️ Time\'s Up!';
+                handleTimeExpiry();
+            }
+        }, 1000);
+
+        console.log('✅ Challenge Detail Page Loaded');
+        console.log('Challenge ID: {{ challenge.id }}');
+        console.log('Max Attempts:', maxAttempts);
+    </script>
+</body>
+</html>

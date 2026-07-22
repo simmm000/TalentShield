@@ -1,0 +1,92 @@
+# cv_processor/tasks.py
+
+from celery import shared_task
+from .bert_parser import BERTCVProcessor
+from .fraud_detector import FraudDetector
+from .models import CVAnalysis
+from accounts.models import CandidateProfile, User
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+import json
+from datetime import datetime
+
+@shared_task
+def analyze_cv_async(user_id, file_path):
+    """Background task for CV analysis"""
+    try:
+        # Get user and profile
+        user = User.objects.get(id=user_id)
+        profile = CandidateProfile.objects.get(user=user)
+        
+        # Load file from storage
+        file_content = default_storage.open(file_path).read()
+        from io import BytesIO
+        from django.core.files.uploadedfile import InMemoryUploadedFile
+        
+        # Create a file-like object
+        file_obj = BytesIO(file_content)
+        file_name = file_path.split('/')[-1]
+        django_file = InMemoryUploadedFile(
+            file_obj, None, file_name, 
+            'application/pdf', len(file_content), None
+        )
+        
+        # Process CV
+        processor = BERTCVProcessor()
+        parsed_data = processor.parse_cv(django_file)
+        
+        if 'error' in parsed_data:
+            return {'error': parsed_data['error']}
+        
+        # Calculate age
+        age = None
+        if profile.date_of_birth:
+            age = datetime.now().year - profile.date_of_birth.year
+        
+        graduation_year = profile.graduation_year
+        
+        # Get existing CV hashes
+        existing_cv_hashes = list(
+            CVAnalysis.objects.exclude(
+                candidate=user
+            ).values_list('cv_hash', flat=True)
+        )
+        
+        # Detect fraud
+        detector = FraudDetector()
+        fraud_result = detector.calculate_fraud_score(
+            parsed_data,
+            age or 0,
+            graduation_year or 0,
+            existing_cv_hashes
+        )
+        
+        # Save analysis
+        cv_analysis = CVAnalysis.objects.create(
+            candidate=user,
+            extracted_skills=parsed_data['skills'],
+            extracted_certifications=parsed_data['certifications'],
+            experience_years=parsed_data['experience_years'],
+            fraud_score=fraud_result['fraud_score'],
+            fraud_risk_level=fraud_result['risk_level'],
+            fraud_details=fraud_result,
+            cv_hash=fraud_result['cv_hash']
+        )
+        
+        # Update profile
+        profile.skills = parsed_data['skills']
+        profile.certifications = parsed_data['certifications']
+        profile.experience_years = parsed_data['experience_years']
+        profile.cv_text = parsed_data['cv_text']
+        profile.save()
+        
+        return {
+            'success': True,
+            'analysis_id': cv_analysis.id,
+            'fraud_score': fraud_result['fraud_score_percentage'],
+            'risk_level': fraud_result['risk_level']
+        }
+        
+    except Exception as e:
+        return {'error': str(e)}
+    

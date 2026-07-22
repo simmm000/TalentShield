@@ -1,0 +1,159 @@
+# cv_processor/bert_parser.py
+
+import re
+import torch
+from transformers import AutoTokenizer, AutoModel
+from sentence_transformers import SentenceTransformer
+import numpy as np
+from datetime import datetime
+
+class BERTCVProcessor:
+    def __init__(self):
+        # Using sentence-transformers for semantic similarity
+        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        # For NER and skill extraction
+        self.tokenizer = AutoTokenizer.from_pretrained('dslim/bert-base-NER')
+        self.ner_model = AutoModel.from_pretrained('dslim/bert-base-NER')
+        
+        # Predefined skill lists
+        self.cyber_skills = {
+            'technical': ['python', 'java', 'c++', 'javascript', 'bash', 'powershell', 'sql', 'linux', 
+                         'windows', 'network', 'tcp/ip', 'firewall', 'ids', 'ips', 'vpn', 'wireshark', 
+                         'nmap', 'metasploit', 'burp suite', 'owasp', 'siem', 'splunk', 'elasticsearch'],
+            'security': ['penetration testing', 'vulnerability assessment', 'threat analysis', 'incident response',
+                        'risk assessment', 'security audit', 'compliance', 'gdpr', 'hipaa', 'iso 27001'],
+            'tools': ['wireshark', 'nmap', 'metasploit', 'burpsuite', 'sqlmap', 'nessus', 'openvas', 
+                     'snort', 'suricata', 'zeek', 'splunk', 'qradar', 'arcsight']
+        }
+        self.all_skills = set(self.cyber_skills['technical'] + self.cyber_skills['security'] + self.cyber_skills['tools'])
+
+    def extract_text_from_cv(self, file):
+        """Extract text from uploaded CV file (PDF or DOCX)"""
+        text = ""
+        if file.name.endswith('.pdf'):
+            import PyPDF2
+            reader = PyPDF2.PdfReader(file)
+            for page in reader.pages:
+                text += page.extract_text() or ""
+        elif file.name.endswith('.docx'):
+            import docx
+            doc = docx.Document(file)
+            for para in doc.paragraphs:
+                text += para.text + "\n"
+        else:
+            # Try plain text
+            text = file.read().decode('utf-8', errors='ignore')
+        return text
+
+    def extract_entities(self, text):
+        """Extract named entities using BERT NER"""
+        inputs = self.tokenizer(text, return_tensors='pt', truncation=True, max_length=512)
+        with torch.no_grad():
+            outputs = self.ner_model(**inputs)
+        predictions = torch.argmax(outputs.logits, dim=2)
+        
+        entities = []
+        current_entity = ""
+        current_type = ""
+        
+        for i, pred in enumerate(predictions[0]):
+            token = self.tokenizer.decode(inputs['input_ids'][0][i])
+            if token.startswith('##'):
+                current_entity += token[2:]
+            else:
+                if current_entity:
+                    entities.append({'text': current_entity, 'type': current_type})
+                current_entity = token
+                current_type = self._get_entity_type(pred.item())
+        
+        if current_entity:
+            entities.append({'text': current_entity, 'type': current_type})
+        
+        return entities
+
+    def _get_entity_type(self, pred_id):
+        types = {0: 'O', 1: 'B-PER', 2: 'I-PER', 3: 'B-ORG', 4: 'I-ORG', 5: 'B-LOC', 6: 'I-LOC'}
+        return types.get(pred_id, 'O')
+
+    def extract_skills(self, text):
+        """Extract cybersecurity skills from text"""
+        text_lower = text.lower()
+        found_skills = []
+        for skill in self.all_skills:
+            if skill in text_lower:
+                found_skills.append(skill)
+        return found_skills
+
+    def extract_certifications(self, text):
+        """Extract certifications with verification IDs"""
+        cert_patterns = {
+            'CEH': r'CEH[:\s]*([A-Z0-9-]+)?',
+            'CompTIA Security+': r'Security\+[:\s]*([A-Z0-9-]+)?',
+            'CISSP': r'CISSP[:\s]*([A-Z0-9-]+)?',
+            'OSCP': r'OSCP[:\s]*([A-Z0-9-]+)?',
+            'CISA': r'CISA[:\s]*([A-Z0-9-]+)?',
+            'CISM': r'CISM[:\s]*([A-Z0-9-]+)?',
+        }
+        
+        certifications = []
+        for name, pattern in cert_patterns.items():
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            if matches:
+                cert = {'name': name}
+                if matches[0]:
+                    cert['verification_id'] = matches[0]
+                certifications.append(cert)
+        return certifications
+
+    def extract_experience(self, text):
+        """Extract work experience and calculate years"""
+        # Simple pattern for date ranges
+        date_pattern = r'(\d{4})\s*[-–]\s*(\d{4}|present)'
+        matches = re.findall(date_pattern, text, re.IGNORECASE)
+        
+        total_years = 0
+        for start, end in matches:
+            try:
+                start_year = int(start)
+                end_year = datetime.now().year if end.lower() == 'present' else int(end)
+                if start_year and end_year:
+                    total_years += (end_year - start_year)
+            except:
+                continue
+        
+        # If no dates found, look for explicit mention of years
+        if total_years == 0:
+            year_mentions = re.findall(r'(\d+)\+?\s*(?:years|yrs)', text, re.IGNORECASE)
+            if year_mentions:
+                total_years = float(year_mentions[0])
+        
+        return round(total_years, 1)
+
+    def generate_embedding(self, text):
+        """Generate text embedding for semantic matching"""
+        embedding = self.model.encode(text)
+        return embedding.tolist()
+
+    def parse_cv(self, file):
+        """Main CV parsing function"""
+        # Extract text
+        text = self.extract_text_from_cv(file)
+        if not text:
+            return {'error': 'Could not extract text from file'}
+        
+        # Extract structured data
+        skills = self.extract_skills(text)
+        certifications = self.extract_certifications(text)
+        experience_years = self.extract_experience(text)
+        embedding = self.generate_embedding(text[:1000])  # Limit for performance
+        
+        return {
+            'cv_text': text,
+            'skills': skills,
+            'certifications': certifications,
+            'experience_years': experience_years,
+            'embedding': embedding,
+            'word_count': len(text.split()),
+            'certification_count': len(certifications)
+        }
+        

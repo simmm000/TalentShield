@@ -1,0 +1,14 @@
+GET /api/cv/fraud-check/15/
+Headers: Authorization: Bearer <access_token>
+
+# Response:
+{
+    "candidate_id": 15,
+    "candidate_name": "john_doe",
+    "fraud_score": "15.0%",
+    "risk_level": "Low",
+    "fraud_details": {...},
+    "verified_skills": ["python", "linux", "wireshark", "nmap"],
+    "claimed_certifications": [{"name": "CEH", "verification_id": "EC-23456"}],
+    "analysis_date": "2026-05-13T10:30:00Z"
+}

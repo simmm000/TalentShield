@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw Application - Talent Shield</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { max-width: 500px; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
+        .icon { font-size: 64px; display: block; margin-bottom: 16px; }
+        h1 { color: #1A1A2E; margin-bottom: 10px; }
+        p { color: #6B7280; margin-bottom: 8px; }
+        .job-title { font-weight: 600; color: #1A1A2E; }
+        .company { color: #6C3CE1; }
+        .warning { color: #EF4444; font-weight: 600; margin-top: 12px; }
+        .buttons { display: flex; gap: 12px; margin-top: 24px; justify-content: center; }
+        .btn { display: inline-block; padding: 12px 30px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; text-decoration: none; font-size: 14px; }
+        .btn-danger { background: #EF4444; color: white; }
+        .btn-danger:hover { background: #DC2626; }
+        .btn-secondary { background: #E5E7EB; color: #1A1A2E; }
+        .btn-secondary:hover { background: #D1D5DB; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .alert-warning { background: #FEF3C7; color: #92400E; }
+        .alert-success { background: #D1FAE5; color: #065F46; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="icon">🗑️</span>
+        <h1>Withdraw Application</h1>
+        <p>Are you sure you want to withdraw your application for:</p>
+        <p class="job-title">{{ application.job.title }}</p>
+        <p class="company">{{ application.job.company }}</p>
+        <p class="warning">⚠️ This action cannot be undone!</p>
+        
+        <div class="buttons">
+            <a href="{% url 'my_applications' %}" class="btn btn-secondary">Cancel</a>
+            <form method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Yes, Withdraw</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

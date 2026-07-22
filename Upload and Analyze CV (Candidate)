@@ -1,0 +1,37 @@
+POST /api/cv/upload-analyze/
+Headers: Authorization: Bearer <access_token>
+Content-Type: multipart/form-data
+
+{
+    "cv_file": <PDF/DOCX file>
+}
+
+# Response:
+{
+    "success": true,
+    "message": "CV analyzed successfully",
+    "parsed_data": {
+        "skills": ["python", "linux", "wireshark", "nmap"],
+        "certifications": [{"name": "CEH", "verification_id": "EC-23456"}],
+        "experience_years": 1.5,
+        "word_count": 450
+    },
+    "fraud_analysis": {
+        "fraud_score": "15.0%",
+        "risk_level": "Low",
+        "flagged_sections": [],
+        "factors": [
+            {
+                "factor": "AI Generated Text",
+                "score": 0.0,
+                "details": "AI detection score: 0.00"
+            },
+            {
+                "factor": "Certification Fraud",
+                "score": 0.1,
+                "details": "Certification risk score: 0.10"
+            }
+        ]
+    },
+    "analysis_id": 42
+}
